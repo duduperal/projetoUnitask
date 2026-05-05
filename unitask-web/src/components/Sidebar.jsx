@@ -1,0 +1,62 @@
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import styles from './Sidebar.module.css'
+
+const navItems = [
+  { path: '/', icon: '⊞', label: 'Dashboard' },
+  { path: '/tarefas', icon: '✓', label: 'Tarefas' },
+  { path: '/grupos', icon: '👥', label: 'Grupos' },
+  { path: '/notificacoes', icon: '🔔', label: 'Notificações' },
+  { path: '/configuracoes', icon: '⚙', label: 'Configurações' },
+]
+
+export default function Sidebar() {
+  const { pathname } = useLocation()
+  const { usuario, logout } = useAuth()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
+
+  return (
+    <aside className={styles.sidebar}>
+      <div className={styles.logo}>
+        <h1>UniTask</h1>
+        <span>Gestão Acadêmica</span>
+      </div>
+
+      <div className={styles.divider} />
+
+      <nav className={styles.nav}>
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`${styles.navItem} ${pathname === item.path ? styles.active : ''}`}
+          >
+            <span className={styles.icon}>{item.icon}</span>
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+
+      <div className={styles.bottom}>
+        <div className={styles.divider} />
+        <div className={styles.user}>
+          <div className={styles.avatar}>
+            {usuario?.nome?.charAt(0).toUpperCase()}
+          </div>
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>{usuario?.nome}</span>
+            <span className={styles.userEmail}>{usuario?.email}</span>
+          </div>
+        </div>
+        <button className={styles.logoutBtn} onClick={handleLogout}>
+          🚪 Sair da conta
+        </button>
+      </div>
+    </aside>
+  )
+}

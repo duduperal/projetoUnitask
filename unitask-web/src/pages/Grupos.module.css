@@ -1,0 +1,401 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.titulo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.subtitulo { font-size: 13px; color: var(--gray); }
+
+.headerAcoes { display: flex; gap: 12px; }
+
+.btnNovo {
+  background: var(--primary);
+  color: var(--white);
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s;
+}
+
+.btnNovo:hover { background: var(--primary-dark); }
+
+.btnSecundario {
+  background: var(--card-bg);
+  color: var(--dark);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.btnSecundario:hover { background: var(--light-gray); }
+
+.loading, .empty {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--gray);
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty span { font-size: 40px; }
+
+.emptyAcoes { display: flex; gap: 12px; margin-top: 4px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: 0.2s;
+}
+
+.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+.cardHeader { display: flex; align-items: center; gap: 14px; }
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  background: var(--primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cardInfo { display: flex; flex-direction: column; gap: 4px; }
+
+.cardNome {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.adminBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 2px 8px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.cardDesc {
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.4;
+}
+
+.conviteBox {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.conviteLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.conviteRow { display: flex; align-items: center; gap: 10px; }
+
+.conviteCodigo {
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--dark);
+  font-weight: 600;
+  flex: 1;
+  word-break: break-all;
+}
+
+.btnCopiar {
+  background: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.15s;
+}
+
+.btnCopiar:hover { background: var(--primary-light); }
+
+.cardFooter { display: flex; gap: 10px; }
+
+.btnMembros {
+  flex: 1;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.btnMembros:hover { background: #d8e4fb; }
+
+.btnExcluir {
+  background: #FEE2E2;
+  color: var(--danger);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.btnExcluir:hover { background: #fecaca; }
+
+/* Modal base */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 0;
+}
+
+.modalHeader h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.fechar {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.fechar:hover { background: var(--light-gray); }
+
+.form {
+  padding: 20px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.field input, .field textarea {
+  background: var(--light-gray);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--dark);
+  border: none;
+  outline: none;
+  resize: vertical;
+  transition: 0.2s;
+}
+
+.field input:focus, .field textarea:focus {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.modalFooter {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btnCancelar {
+  background: var(--light-gray);
+  color: var(--dark);
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.btnSalvar {
+  background: var(--primary);
+  color: var(--white);
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btnSalvar:hover { background: var(--primary-dark); }
+.btnSalvar:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.erro {
+  background: #FEE2E2;
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* Membros */
+.membrosList {
+  padding: 16px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.membroItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+
+.membroAvatar {
+  width: 36px;
+  height: 36px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.membroNome {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.papelBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--light-gray);
+  color: var(--gray);
+}
+
+.papelAdmin {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* Confirm */
+.modalConfirm {
+  background: var(--white);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.modalConfirm h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 12px;
+}
+
+.modalConfirm p {
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.confirmFooter { display: flex; gap: 12px; justify-content: flex-end; }
+
+.btnExcluirConfirm {
+  background: var(--danger);
+  color: var(--white);
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btnExcluirConfirm:hover { background: #c53030; }

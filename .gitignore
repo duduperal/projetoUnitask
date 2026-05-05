@@ -1,0 +1,20 @@
+# Frontend
+unitask-web/node_modules/
+unitask-web/dist/
+unitask-web/.env.local
+
+# Backend
+unitask/target/
+unitask/.mvn/wrapper/maven-wrapper.jar
+unitask/*.class
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db

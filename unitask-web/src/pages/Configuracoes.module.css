@@ -1,0 +1,83 @@
+.header { margin-bottom: 28px; }
+.titulo { font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.subtitulo { font-size: 13px; color: var(--gray); }
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.perfilHeader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 26px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.nome { font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.email { font-size: 14px; color: var(--gray); }
+
+.cardTitulo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 20px;
+}
+
+.infoList { display: flex; flex-direction: column; gap: 0; }
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.infoItem:last-child { border-bottom: none; }
+
+.infoLabel { font-size: 13px; color: var(--gray); font-weight: 500; }
+.infoValor { font-size: 14px; color: var(--dark); font-weight: 600; }
+
+.cardDesc {
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.btnSair {
+  background: #FEE2E2;
+  color: var(--danger);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btnSair:hover { background: #fecaca; }
