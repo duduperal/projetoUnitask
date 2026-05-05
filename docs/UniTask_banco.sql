@@ -134,6 +134,51 @@ CREATE TABLE notificacao (
 );
 
 -- ============================================================
+--  TABELA: comentario
+--  Armazena comentários feitos pelos usuários em tarefas.
+-- ============================================================
+CREATE TABLE comentario (
+    id_comentario   INT     NOT NULL AUTO_INCREMENT,
+    id_tarefa       INT     NOT NULL,
+    id_usuario      INT     NOT NULL,
+    conteudo        TEXT    NOT NULL,
+    criado_em       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_comentario PRIMARY KEY (id_comentario),
+    CONSTRAINT fk_com_tarefa FOREIGN KEY (id_tarefa)
+        REFERENCES tarefa (id_tarefa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_com_usuario FOREIGN KEY (id_usuario)
+        REFERENCES usuario (id_usuario)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- ============================================================
+--  TABELA: anexo
+--  Armazena referências de arquivos anexados a tarefas.
+-- ============================================================
+CREATE TABLE anexo (
+    id_anexo        INT             NOT NULL AUTO_INCREMENT,
+    id_tarefa       INT             NOT NULL,
+    id_usuario      INT             NOT NULL,
+    nome_arquivo    VARCHAR(255)    NOT NULL,
+    url             VARCHAR(500)    NOT NULL,
+    criado_em       TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_anexo PRIMARY KEY (id_anexo),
+    CONSTRAINT fk_anx_tarefa FOREIGN KEY (id_tarefa)
+        REFERENCES tarefa (id_tarefa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_anx_usuario FOREIGN KEY (id_usuario)
+        REFERENCES usuario (id_usuario)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- ============================================================
 --  ÍNDICES adicionais para performance
 -- ============================================================
 CREATE INDEX idx_tarefa_usuario    ON tarefa       (id_usuario);
@@ -142,6 +187,8 @@ CREATE INDEX idx_tarefa_prazo      ON tarefa       (prazo);
 CREATE INDEX idx_notif_usuario     ON notificacao  (id_usuario);
 CREATE INDEX idx_notif_lido        ON notificacao  (lido);
 CREATE INDEX idx_grupo_admin       ON grupo        (id_admin);
+CREATE INDEX idx_comentario_tarefa ON comentario   (id_tarefa);
+CREATE INDEX idx_anexo_tarefa      ON anexo        (id_tarefa);
 
 -- ============================================================
 --  FIM DO SCRIPT
