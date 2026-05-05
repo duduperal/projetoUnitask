@@ -1,5 +1,9 @@
 # Frontend
 unitask-web/node_modules/
+
+# Mobile
+unitask-mobile/node_modules/
+unitask-mobile/.expo/
 unitask-web/dist/
 unitask-web/.env.local
 
