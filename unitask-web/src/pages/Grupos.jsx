@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import api from '../services/api'
 import styles from './Grupos.module.css'
 
 export default function Grupos() {
   const { usuario } = useAuth()
+  const navigate = useNavigate()
   const [grupos, setGrupos] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [modalCriar, setModalCriar] = useState(false)
@@ -125,7 +127,7 @@ export default function Grupos() {
       ) : (
         <div className={styles.grid}>
           {grupos.map(g => (
-            <div key={g.idGrupo} className={styles.card}>
+            <div key={g.idGrupo} className={styles.card} onClick={() => navigate(`/grupos/${g.idGrupo}`)} style={{ cursor: 'pointer' }}>
               <div className={styles.cardHeader}>
                 <div className={styles.avatar}>{g.nome.charAt(0).toUpperCase()}</div>
                 <div className={styles.cardInfo}>
@@ -138,25 +140,25 @@ export default function Grupos() {
 
               {g.descricao && <p className={styles.cardDesc}>{g.descricao}</p>}
 
-              <div className={styles.conviteBox}>
+              <div className={styles.conviteBox} onClick={e => e.stopPropagation()}>
                 <span className={styles.conviteLabel}>Código de convite</span>
                 <div className={styles.conviteRow}>
                   <code className={styles.conviteCodigo}>{g.codigoConvite}</code>
                   <button
                     className={styles.btnCopiar}
-                    onClick={() => copiarCodigo(g.codigoConvite, g.idGrupo)}
+                    onClick={e => { e.stopPropagation(); copiarCodigo(g.codigoConvite, g.idGrupo) }}
                   >
                     {copiado === g.idGrupo ? '✓ Copiado' : '📋 Copiar'}
                   </button>
                 </div>
               </div>
 
-              <div className={styles.cardFooter}>
-                <button className={styles.btnMembros} onClick={() => verMembros(g)}>
-                  👥 Ver membros
+              <div className={styles.cardFooter} onClick={e => e.stopPropagation()}>
+                <button className={styles.btnMembros} onClick={() => navigate(`/grupos/${g.idGrupo}`)}>
+                  📂 Ver detalhes
                 </button>
                 {g.idAdmin === usuario.idUsuario && (
-                  <button className={styles.btnExcluir} onClick={() => setConfirmandoExcluir(g)}>
+                  <button className={styles.btnExcluir} onClick={e => { e.stopPropagation(); setConfirmandoExcluir(g) }}>
                     🗑️ Excluir
                   </button>
                 )}

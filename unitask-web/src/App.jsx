@@ -6,6 +6,7 @@ import Cadastro from './pages/Cadastro'
 import Dashboard from './pages/Dashboard'
 import Tarefas from './pages/Tarefas'
 import Grupos from './pages/Grupos'
+import GrupoDetalhe from './pages/GrupoDetalhe'
 import Notificacoes from './pages/Notificacoes'
 import Configuracoes from './pages/Configuracoes'
 
@@ -24,6 +25,7 @@ function App() {
       <Route path="/" element={<RotaProtegida><Dashboard /></RotaProtegida>} />
       <Route path="/tarefas" element={<RotaProtegida><Tarefas /></RotaProtegida>} />
       <Route path="/grupos" element={<RotaProtegida><Grupos /></RotaProtegida>} />
+      <Route path="/grupos/:id" element={<RotaProtegida><GrupoDetalhe /></RotaProtegida>} />
       <Route path="/notificacoes" element={<RotaProtegida><Notificacoes /></RotaProtegida>} />
       <Route path="/configuracoes" element={<RotaProtegida><Configuracoes /></RotaProtegida>} />
       <Route path="*" element={<Navigate to="/" />} />
