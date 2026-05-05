@@ -39,8 +39,12 @@ export default function Cadastro() {
   return (
     <div className={styles.container}>
       <div className={styles.leftPanel}>
-        <h1 className={styles.logo}>UniTask</h1>
-        <p className={styles.slogan}>Crie sua conta e comece a<br />organizar suas tarefas hoje.</p>
+        <div className={styles.logo}>
+          <div className={styles.logoIcon}>U</div>
+          <span className={styles.logoNome}>UniTask</span>
+        </div>
+        <p className={styles.slogan}>Comece a organizar suas tarefas hoje.</p>
+        <p className={styles.sloganSub}>Crie sua conta gratuitamente e gerencie suas atividades acadêmicas com facilidade.</p>
         <div className={styles.steps}>
           {[
             { num: '1', title: 'Crie sua conta', desc: 'Cadastre-se com seu e-mail.' },

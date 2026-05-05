@@ -34,8 +34,12 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <div className={styles.leftPanel}>
-        <h1 className={styles.logo}>UniTask</h1>
-        <p className={styles.slogan}>Bem-vindo de volta!<br />Acesse sua conta para continuar.</p>
+        <div className={styles.logo}>
+          <div className={styles.logoIcon}>U</div>
+          <span className={styles.logoNome}>UniTask</span>
+        </div>
+        <p className={styles.slogan}>Bem-vindo de volta!</p>
+        <p className={styles.sloganSub}>Acesse sua conta para gerenciar suas tarefas e grupos acadêmicos.</p>
         <div className={styles.features}>
           <div className={styles.featureItem}>
             <span>✓</span>

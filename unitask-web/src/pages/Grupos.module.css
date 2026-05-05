@@ -1,31 +1,38 @@
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .titulo {
   font-size: 24px;
   font-weight: 700;
   color: var(--dark);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
+  letter-spacing: -0.3px;
 }
 
 .subtitulo { font-size: 13px; color: var(--gray); }
 
-.headerAcoes { display: flex; gap: 12px; }
+.headerAcoes {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
 
 .btnNovo {
   background: var(--primary);
-  color: var(--white);
-  padding: 12px 22px;
-  border-radius: 10px;
-  font-size: 14px;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: 0.2s;
+  transition: background 0.15s;
 }
 
 .btnNovo:hover { background: var(--primary-dark); }
@@ -33,84 +40,102 @@
 .btnSecundario {
   background: var(--card-bg);
   color: var(--dark);
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
-  border: none;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  transition: 0.2s;
+  border: 1px solid var(--border);
+  transition: 0.12s;
 }
 
 .btnSecundario:hover { background: var(--light-gray); }
 
+/* Estados */
 .loading, .empty {
   text-align: center;
-  padding: 60px 0;
+  padding: 64px 0;
   color: var(--gray);
-  font-size: 15px;
+  font-size: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
 }
 
-.empty span { font-size: 40px; }
+.empty span { font-size: 36px; }
 
-.emptyAcoes { display: flex; gap: 12px; margin-top: 4px; }
+.emptyAcoes { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
 
+/* Grid de cards */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 }
 
 .card {
   background: var(--card-bg);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  transition: 0.2s;
+  gap: 14px;
+  transition: box-shadow 0.15s;
 }
 
-.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
 
-.cardHeader { display: flex; align-items: center; gap: 14px; }
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
 .avatar {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   background: var(--primary);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
-  font-size: 20px;
+  color: #fff;
+  font-size: 18px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
-.cardInfo { display: flex; flex-direction: column; gap: 4px; }
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
 
 .cardNome {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .adminBadge {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--primary);
   background: var(--primary-light);
   padding: 2px 8px;
   border-radius: 20px;
   width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .cardDesc {
@@ -119,36 +144,37 @@
   line-height: 1.4;
 }
 
+/* Caixa de código */
 .conviteBox {
-  background: var(--bg);
-  border-radius: 10px;
-  padding: 12px 14px;
+  background: var(--light-gray);
+  border-radius: 8px;
+  padding: 11px 13px;
 }
 
 .conviteLabel {
   display: block;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--gray);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
   margin-bottom: 6px;
 }
 
-.conviteRow { display: flex; align-items: center; gap: 10px; }
+.conviteRow { display: flex; align-items: center; gap: 8px; }
 
 .conviteCodigo {
-  font-family: monospace;
+  font-family: 'Courier New', monospace;
   font-size: 14px;
   color: var(--dark);
   font-weight: 600;
   flex: 1;
-  word-break: break-all;
+  letter-spacing: 0.05em;
 }
 
 .btnCopiar {
   background: var(--white);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 4px 10px;
   font-size: 12px;
@@ -156,38 +182,41 @@
   color: var(--primary);
   cursor: pointer;
   white-space: nowrap;
-  transition: 0.15s;
+  transition: 0.12s;
 }
 
-.btnCopiar:hover { background: var(--primary-light); }
+.btnCopiar:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
 
-.cardFooter { display: flex; gap: 10px; }
+.cardFooter { display: flex; gap: 8px; }
 
 .btnMembros {
   flex: 1;
   background: var(--primary-light);
   color: var(--primary);
   border: none;
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 7px;
+  padding: 9px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.15s;
+  transition: background 0.12s;
 }
 
-.btnMembros:hover { background: #d8e4fb; }
+.btnMembros:hover { background: #d4e8fc; }
 
 .btnExcluir {
-  background: #FEE2E2;
+  background: var(--danger-light);
   color: var(--danger);
   border: none;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 7px;
+  padding: 9px 13px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.15s;
+  transition: background 0.12s;
 }
 
 .btnExcluir:hover { background: #fecaca; }
@@ -196,31 +225,33 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
   padding: 20px;
+  backdrop-filter: blur(2px);
 }
 
 .modal {
   background: var(--white);
-  border-radius: 16px;
+  border-radius: 14px;
   width: 100%;
-  max-width: 480px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  max-width: 460px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border);
 }
 
 .modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 28px 0;
+  padding: 22px 24px 0;
 }
 
 .modalHeader h2 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--dark);
 }
@@ -228,131 +259,143 @@
 .fechar {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--gray);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 5px 8px;
   border-radius: 6px;
+  transition: background 0.12s;
+  line-height: 1;
 }
 
-.fechar:hover { background: var(--light-gray); }
+.fechar:hover { background: var(--light-gray); color: var(--dark); }
 
 .form {
-  padding: 20px 28px 28px;
+  padding: 18px 24px 24px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
-.field { display: flex; flex-direction: column; gap: 8px; }
+.field { display: flex; flex-direction: column; gap: 7px; }
 
 .field label {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--dark);
 }
 
 .field input, .field textarea {
   background: var(--light-gray);
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: 8px;
+  padding: 11px 13px;
   font-size: 14px;
   color: var(--dark);
-  border: none;
+  border: 1px solid transparent;
   outline: none;
   resize: vertical;
-  transition: 0.2s;
+  transition: 0.15s;
 }
 
 .field input:focus, .field textarea:focus {
   box-shadow: 0 0 0 2px var(--primary);
+  background: #fff;
 }
 
 .modalFooter {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: flex-end;
 }
 
 .btnCancelar {
   background: var(--light-gray);
   color: var(--dark);
-  padding: 12px 22px;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 600;
   border: none;
   cursor: pointer;
+  transition: background 0.12s;
 }
+
+.btnCancelar:hover { background: var(--border); }
 
 .btnSalvar {
   background: var(--primary);
-  color: var(--white);
-  padding: 12px 22px;
-  border-radius: 10px;
-  font-size: 14px;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background 0.15s;
 }
 
 .btnSalvar:hover { background: var(--primary-dark); }
-.btnSalvar:disabled { opacity: 0.7; cursor: not-allowed; }
+.btnSalvar:disabled { opacity: 0.65; cursor: not-allowed; }
 
 .erro {
-  background: #FEE2E2;
+  background: var(--danger-light);
   color: var(--danger);
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 10px 13px;
+  border-radius: 7px;
   font-size: 13px;
+  border-left: 3px solid var(--danger);
 }
 
 /* Membros */
 .membrosList {
-  padding: 16px 28px 28px;
+  padding: 14px 24px 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .membroItem {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  background: var(--bg);
-  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--light-gray);
+  border-radius: 8px;
+  transition: background 0.12s;
 }
 
+.membroItem:hover { background: var(--border); }
+
 .membroAvatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   background: var(--primary-light);
   color: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .membroNome {
   flex: 1;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--dark);
 }
 
 .papelBadge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 9px;
   border-radius: 20px;
-  background: var(--light-gray);
+  background: var(--border);
   color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .papelAdmin {
@@ -363,39 +406,71 @@
 /* Confirm */
 .modalConfirm {
   background: var(--white);
-  border-radius: 16px;
+  border-radius: 14px;
   width: 100%;
-  max-width: 400px;
-  padding: 32px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  max-width: 380px;
+  padding: 28px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border);
 }
 
 .modalConfirm h3 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--dark);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .modalConfirm p {
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--gray);
   line-height: 1.5;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
-.confirmFooter { display: flex; gap: 12px; justify-content: flex-end; }
+.confirmFooter { display: flex; gap: 10px; justify-content: flex-end; }
 
 .btnExcluirConfirm {
   background: var(--danger);
-  color: var(--white);
-  padding: 12px 22px;
-  border-radius: 10px;
-  font-size: 14px;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background 0.15s;
 }
 
-.btnExcluirConfirm:hover { background: #c53030; }
+.btnExcluirConfirm:hover { background: #b91c1c; }
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .titulo { font-size: 20px; }
+
+  .headerAcoes {
+    width: 100%;
+  }
+
+  .btnNovo, .btnSecundario {
+    flex: 1;
+    text-align: center;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .emptyAcoes {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

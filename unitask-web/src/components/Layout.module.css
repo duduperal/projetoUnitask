@@ -3,10 +3,62 @@
   min-height: 100vh;
 }
 
+.overlay {
+  display: none;
+}
+
 .main {
-  margin-left: 260px;
+  margin-left: var(--sidebar-width);
   flex: 1;
-  padding: 36px 40px;
+  padding: 32px 40px;
   background: var(--bg);
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.hamburger {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  transition: background 0.15s;
+  font-weight: 500;
+}
+
+.hamburger:hover {
+  background: var(--light-gray);
+}
+
+@media (max-width: 768px) {
+  .main {
+    margin-left: 0;
+    padding: 16px 16px 48px;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 99;
+    backdrop-filter: blur(2px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .main {
+    padding: 24px 28px;
+  }
 }

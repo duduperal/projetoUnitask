@@ -10,7 +10,7 @@ const navItems = [
   { path: '/configuracoes', icon: '⚙', label: 'Configurações' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   const { pathname } = useLocation()
   const { usuario, logout } = useAuth()
   const navigate = useNavigate()
@@ -21,10 +21,14 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${open ? styles.open : ''}`}>
       <div className={styles.logo}>
-        <h1>UniTask</h1>
-        <span>Gestão Acadêmica</span>
+        <div className={styles.logoIcon}>U</div>
+        <div className={styles.logoTexts}>
+          <h1>UniTask</h1>
+          <span>Gestão Acadêmica</span>
+        </div>
+        <button className={styles.closeMobile} onClick={onClose} aria-label="Fechar menu">✕</button>
       </div>
 
       <div className={styles.divider} />
@@ -35,6 +39,7 @@ export default function Sidebar() {
             key={item.path}
             to={item.path}
             className={`${styles.navItem} ${pathname === item.path ? styles.active : ''}`}
+            onClick={onClose}
           >
             <span className={styles.icon}>{item.icon}</span>
             <span>{item.label}</span>
@@ -54,7 +59,7 @@ export default function Sidebar() {
           </div>
         </div>
         <button className={styles.logoutBtn} onClick={handleLogout}>
-          🚪 Sair da conta
+          ⎋ Sair da conta
         </button>
       </div>
     </aside>

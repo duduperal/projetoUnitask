@@ -1,103 +1,128 @@
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.titulo { font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.titulo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 3px;
+  letter-spacing: -0.3px;
+}
+
 .subtitulo { font-size: 13px; color: var(--gray); }
 
 .btnMarcarTodas {
   background: var(--primary-light);
   color: var(--primary);
   border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
+  border-radius: 8px;
+  padding: 9px 16px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.15s;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.btnMarcarTodas:hover { background: #d8e4fb; }
+.btnMarcarTodas:hover { background: #d4e8fc; }
 
 .filtros {
   display: flex;
   gap: 6px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .filtroBtn {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 18px;
+  padding: 7px 16px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
   color: var(--gray);
   background: var(--card-bg);
-  border: none;
+  border: 1px solid var(--border);
   cursor: pointer;
-  transition: 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: 0.15s;
+}
+
+.filtroBtn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .filtroAtivo {
   background: var(--primary);
-  color: var(--white);
+  color: #fff;
   font-weight: 600;
+  border-color: var(--primary);
+}
+
+.filtroAtivo:hover {
+  color: #fff;
 }
 
 .badge {
   background: var(--danger);
-  color: var(--white);
+  color: #fff;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 20px;
+  line-height: 1.4;
 }
 
 .loading, .empty {
   text-align: center;
   padding: 60px 0;
   color: var(--gray);
-  font-size: 15px;
+  font-size: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
 }
 
-.empty span { font-size: 40px; }
+.empty span { font-size: 36px; }
 
-.lista { display: flex; flex-direction: column; gap: 10px; }
+.lista { display: flex; flex-direction: column; gap: 6px; }
 
 .card {
   background: var(--card-bg);
-  border-radius: 14px;
-  padding: 18px 20px;
+  border-radius: 10px;
+  padding: 16px 18px;
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid var(--border);
   cursor: pointer;
-  transition: 0.2s;
-  border-left: 4px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  border-left: 3px solid transparent;
 }
 
-.card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.card:hover { background: var(--light-gray); }
 
 .cardNaoLida {
   border-left-color: var(--primary);
-  background: #f8f9ff;
+  background: #FAFBFF;
+}
+
+.cardNaoLida:hover {
+  background: #F3F7FF;
 }
 
 .cardIcone {
-  font-size: 24px;
+  font-size: 20px;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .cardConteudo { flex: 1; min-width: 0; }
@@ -106,44 +131,64 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .tipoBadge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 2px 9px;
   border-radius: 20px;
   background: var(--light-gray);
   color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .naoLidaDot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--primary);
+  flex-shrink: 0;
 }
 
 .mensagem {
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--dark);
   line-height: 1.5;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
-.data { font-size: 12px; color: var(--gray); }
+.data { font-size: 11.5px; color: var(--gray); }
 
 .btnExcluir {
   background: none;
   border: none;
   color: var(--gray);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 5px 8px;
   border-radius: 6px;
   flex-shrink: 0;
-  transition: 0.15s;
+  transition: 0.12s;
+  opacity: 0.6;
 }
 
-.btnExcluir:hover { background: #FEE2E2; color: var(--danger); }
+.card:hover .btnExcluir {
+  opacity: 1;
+}
+
+.btnExcluir:hover { background: var(--danger-light); color: var(--danger); }
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btnMarcarTodas {
+    width: 100%;
+    text-align: center;
+  }
+}
