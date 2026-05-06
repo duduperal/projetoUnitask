@@ -13,7 +13,7 @@ function formatarData(iso) {
   })
 }
 
-export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete }) {
+export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete, podeAlterarStatus = true }) {
   const { usuario } = useAuth()
   const [aba, setAba] = useState('detalhes')
   const [comentarios, setComentarios] = useState([])
@@ -43,9 +43,21 @@ export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete }) {
   const prazoVencido = tarefa.prazo && new Date(tarefa.prazo) < new Date() && tarefa.status !== 'concluida'
 
   async function toggleStatus() {
-    const endpoint = tarefa.status === 'concluida' ? 'reabrir' : 'concluir'
-    const { data } = await api.put(`/api/tarefas/${tarefa.idTarefa}/${endpoint}`)
-    onUpdate(data)
+    if (!podeAlterarStatus) {
+      setErro('Esta tarefa está compartilhada num grupo. Apenas o admin pode alterar o status.')
+      return
+    }
+    try {
+      const endpoint = tarefa.status === 'concluida' ? 'reabrir' : 'concluir'
+      const { data } = await api.put(`/api/tarefas/${tarefa.idTarefa}/${endpoint}`)
+      onUpdate(data)
+    } catch (e) {
+      if (e.response?.status === 403) {
+        setErro('Esta tarefa está em um grupo. Apenas o admin pode alterar o status.')
+      } else {
+        setErro('Erro ao alterar status da tarefa.')
+      }
+    }
   }
 
   async function enviarComentario(e) {
@@ -104,7 +116,13 @@ export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete }) {
             <button
               className={`${styles.checkBtn} ${tarefa.status === 'concluida' ? styles.checkBtnDone : ''}`}
               onClick={toggleStatus}
-              title={tarefa.status === 'concluida' ? 'Reabrir' : 'Concluir'}
+              disabled={!podeAlterarStatus}
+              style={!podeAlterarStatus ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+              title={
+                !podeAlterarStatus
+                  ? 'Tarefa em grupo — apenas o admin pode marcar'
+                  : tarefa.status === 'concluida' ? 'Reabrir' : 'Concluir'
+              }
             >
               {tarefa.status === 'concluida' ? '✓' : ''}
             </button>

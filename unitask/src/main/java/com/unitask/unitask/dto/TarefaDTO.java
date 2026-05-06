@@ -2,6 +2,7 @@ package com.unitask.unitask.dto;
 
 import com.unitask.unitask.model.Tarefa;
 import lombok.Data;
+import java.util.List;
 
 public class TarefaDTO {
 
@@ -33,5 +34,6 @@ public class TarefaDTO {
         private String concluidoEm;
         private String criadoEm;
         private Integer idUsuario;
+        private List<Integer> idsGrupos;
     }
 }

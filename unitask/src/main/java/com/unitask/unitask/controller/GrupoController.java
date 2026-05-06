@@ -7,13 +7,17 @@ import com.unitask.unitask.model.GrupoMembro;
 import com.unitask.unitask.model.Tarefa;
 import com.unitask.unitask.model.TarefaGrupo;
 import com.unitask.unitask.model.Usuario;
+import com.unitask.unitask.repository.GrupoMembroRepository;
 import com.unitask.unitask.repository.TarefaGrupoRepository;
 import com.unitask.unitask.service.GrupoService;
 import com.unitask.unitask.service.TarefaService;
 import com.unitask.unitask.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +31,7 @@ public class GrupoController {
     private final UsuarioService usuarioService;
     private final TarefaService tarefaService;
     private final TarefaGrupoRepository tarefaGrupoRepository;
+    private final GrupoMembroRepository grupoMembroRepository;
 
     @PostMapping
     public ResponseEntity<GrupoDTO.Response> criar(@RequestBody GrupoDTO.Request request) {
@@ -86,11 +91,28 @@ public class GrupoController {
     }
 
     @PostMapping("/{id}/tarefas/{idTarefa}")
-    public ResponseEntity<Void> compartilharTarefa(@PathVariable Integer id, @PathVariable Integer idTarefa) {
+    public ResponseEntity<Void> compartilharTarefa(@PathVariable Integer id,
+                                                   @PathVariable Integer idTarefa,
+                                                   @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Não autenticado");
+        }
         Grupo grupo = grupoService.buscarPorId(id)
                 .orElseThrow(() -> new RuntimeException("Grupo não encontrado"));
         Tarefa tarefa = tarefaService.buscarPorId(idTarefa)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+
+        // Qualquer membro do grupo (admin ou membro) pode compartilhar uma tarefa sua
+        if (!grupoMembroRepository.existsByUsuarioIdUsuarioAndGrupoIdGrupo(
+                usuario.getIdUsuario(), id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Apenas membros do grupo podem compartilhar tarefas");
+        }
+        // Apenas o dono da tarefa pode compartilhá-la
+        if (!tarefa.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Você só pode compartilhar suas próprias tarefas");
+        }
 
         TarefaGrupo.TarefaGrupoId tgId = new TarefaGrupo.TarefaGrupoId();
         tgId.setIdTarefa(idTarefa);
@@ -133,6 +155,10 @@ public class GrupoController {
         r.setConcluidoEm(t.getConcluidoEm() != null ? t.getConcluidoEm().toString() : null);
         r.setCriadoEm(t.getCriadoEm() != null ? t.getCriadoEm().toString() : null);
         r.setIdUsuario(t.getUsuario().getIdUsuario());
+        r.setIdsGrupos(tarefaGrupoRepository.findByTarefaIdTarefa(t.getIdTarefa())
+                .stream()
+                .map(tg -> tg.getGrupo().getIdGrupo())
+                .collect(Collectors.toList()));
         return r;
     }
 

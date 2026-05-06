@@ -45,15 +45,27 @@ export default function TarefasScreen({ navigation }) {
   const [editando, setEditando] = useState(null)
   const [form, setForm] = useState({ titulo: '', descricao: '', prioridade: 'media' })
   const [salvando, setSalvando] = useState(false)
+  const [gruposAdmin, setGruposAdmin] = useState(new Set())
 
   async function carregar() {
     try {
-      const { data } = await api.get(`/api/tarefas/usuario/${usuario.idUsuario}`)
-      setTarefas(data)
+      const [rt, rg] = await Promise.all([
+        api.get(`/api/tarefas/usuario/${usuario.idUsuario}`),
+        api.get(`/api/grupos/usuario/${usuario.idUsuario}`).catch(() => ({ data: [] })),
+      ])
+      setTarefas(rt.data)
+      setGruposAdmin(new Set(
+        rg.data.filter(g => g.idAdmin === usuario.idUsuario).map(g => g.idGrupo)
+      ))
     } finally { setCarregando(false) }
   }
 
   useEffect(() => { carregar() }, [])
+
+  function podeAlterarStatus(t) {
+    if (!t.idsGrupos || t.idsGrupos.length === 0) return true
+    return t.idsGrupos.some(id => gruposAdmin.has(id))
+  }
 
   async function onRefresh() {
     setRefreshing(true)
@@ -90,10 +102,25 @@ export default function TarefasScreen({ navigation }) {
   }
 
   async function toggleStatus(t) {
+    if (!podeAlterarStatus(t)) {
+      Alert.alert(
+        'Sem permissão',
+        'Esta tarefa está compartilhada num grupo. Apenas o admin do grupo pode marcá-la como concluída.'
+      )
+      return
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {})
-    const endpoint = t.status === 'concluida' ? 'reabrir' : 'concluir'
-    const { data } = await api.put(`/api/tarefas/${t.idTarefa}/${endpoint}`)
-    setTarefas(prev => prev.map(x => x.idTarefa === t.idTarefa ? data : x))
+    try {
+      const endpoint = t.status === 'concluida' ? 'reabrir' : 'concluir'
+      const { data } = await api.put(`/api/tarefas/${t.idTarefa}/${endpoint}`)
+      setTarefas(prev => prev.map(x => x.idTarefa === t.idTarefa ? data : x))
+    } catch (e) {
+      if (e.response?.status === 403) {
+        Alert.alert('Sem permissão', 'Apenas o admin do grupo pode alterar o status.')
+      } else {
+        Alert.alert('Erro', 'Não foi possível alterar o status.')
+      }
+    }
   }
 
   async function excluir(id) {
@@ -198,10 +225,18 @@ export default function TarefasScreen({ navigation }) {
                   onPress={() => toggleStatus(t)}
                   haptic="medium"
                   scale={0.85}
-                  style={[styles.checkbox, concluida && styles.checkboxMarcado]}
+                  style={[
+                    styles.checkbox,
+                    concluida && styles.checkboxMarcado,
+                    !podeAlterarStatus(t) && { opacity: 0.4 },
+                  ]}
                   hitSlop={10}
                 >
-                  {concluida && <Ionicons name="checkmark" size={14} color="#fff" />}
+                  {concluida
+                    ? <Ionicons name="checkmark" size={14} color="#fff" />
+                    : !podeAlterarStatus(t)
+                      ? <Ionicons name="lock-closed" size={10} color={colors.textDim} />
+                      : null}
                 </PressableScale>
 
                 <View style={{ flex: 1 }}>

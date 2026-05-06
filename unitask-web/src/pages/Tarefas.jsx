@@ -39,6 +39,7 @@ export default function Tarefas() {
   const [confirmandoExcluir, setConfirmandoExcluir] = useState(null)
 
   const [tarefaDetalhe, setTarefaDetalhe] = useState(null)
+  const [gruposAdmin, setGruposAdmin] = useState(new Set())
 
   function carregar() {
     api.get(`/api/tarefas/usuario/${usuario.idUsuario}`)
@@ -46,7 +47,23 @@ export default function Tarefas() {
       .finally(() => setCarregando(false))
   }
 
-  useEffect(() => { if (usuario?.idUsuario) carregar() }, [usuario])
+  useEffect(() => {
+    if (!usuario?.idUsuario) return
+    carregar()
+    api.get(`/api/grupos/usuario/${usuario.idUsuario}`)
+      .then(r => {
+        const ids = new Set(
+          r.data.filter(g => g.idAdmin === usuario.idUsuario).map(g => g.idGrupo)
+        )
+        setGruposAdmin(ids)
+      })
+      .catch(() => {})
+  }, [usuario])
+
+  function podeAlterarStatus(t) {
+    if (!t.idsGrupos || t.idsGrupos.length === 0) return true
+    return t.idsGrupos.some(id => gruposAdmin.has(id))
+  }
 
   function abrirCriar() {
     setEditando(null)
@@ -107,13 +124,25 @@ export default function Tarefas() {
   }
 
   async function concluir(id) {
-    const { data } = await api.put(`/api/tarefas/${id}/concluir`)
-    setTarefas(prev => prev.map(t => t.idTarefa === id ? data : t))
+    try {
+      const { data } = await api.put(`/api/tarefas/${id}/concluir`)
+      setTarefas(prev => prev.map(t => t.idTarefa === id ? data : t))
+    } catch (e) {
+      if (e.response?.status === 403) {
+        alert('Esta tarefa está compartilhada num grupo. Apenas o admin pode marcá-la como concluída.')
+      }
+    }
   }
 
   async function reabrir(id) {
-    const { data } = await api.put(`/api/tarefas/${id}/reabrir`)
-    setTarefas(prev => prev.map(t => t.idTarefa === id ? data : t))
+    try {
+      const { data } = await api.put(`/api/tarefas/${id}/reabrir`)
+      setTarefas(prev => prev.map(t => t.idTarefa === id ? data : t))
+    } catch (e) {
+      if (e.response?.status === 403) {
+        alert('Esta tarefa está compartilhada num grupo. Apenas o admin pode reabri-la.')
+      }
+    }
   }
 
   async function excluir(id) {
@@ -201,8 +230,18 @@ export default function Tarefas() {
               <div className={styles.cardLeft}>
                 <button
                   className={`${styles.checkbox} ${t.status === 'concluida' ? styles.checkboxMarcado : ''}`}
-                  onClick={e => { e.stopPropagation(); t.status === 'concluida' ? reabrir(t.idTarefa) : concluir(t.idTarefa) }}
-                  title={t.status === 'concluida' ? 'Reabrir tarefa' : 'Marcar como concluída'}
+                  onClick={e => {
+                    e.stopPropagation()
+                    if (!podeAlterarStatus(t)) return
+                    t.status === 'concluida' ? reabrir(t.idTarefa) : concluir(t.idTarefa)
+                  }}
+                  disabled={!podeAlterarStatus(t)}
+                  style={!podeAlterarStatus(t) ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+                  title={
+                    !podeAlterarStatus(t)
+                      ? 'Tarefa em grupo — apenas o admin pode marcar'
+                      : t.status === 'concluida' ? 'Reabrir tarefa' : 'Marcar como concluída'
+                  }
                 >
                   {t.status === 'concluida' && '✓'}
                 </button>
@@ -309,6 +348,7 @@ export default function Tarefas() {
         onClose={() => setTarefaDetalhe(null)}
         onUpdate={handlePanelUpdate}
         onDelete={handlePanelDelete}
+        podeAlterarStatus={tarefaDetalhe ? podeAlterarStatus(tarefaDetalhe) : true}
       />
     </Layout>
   )

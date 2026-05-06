@@ -138,7 +138,7 @@ export default function GrupoDetalheScreen({ route, navigation }) {
             <Ionicons name="copy-outline" size={18} color={colors.primary} />
           </PressableScale>
 
-          {ehAdmin && aba === 'tarefas' && (
+          {aba === 'tarefas' && (
             <Button
               variant="primary"
               icon="add"
@@ -163,7 +163,7 @@ export default function GrupoDetalheScreen({ route, navigation }) {
               <EmptyState
                 icon="folder-open-outline"
                 title="Nenhuma tarefa compartilhada"
-                description={ehAdmin ? 'Compartilhe uma tarefa sua para o grupo trabalhar junto.' : 'Aguarde o admin compartilhar tarefas.'}
+                description="Compartilhe uma tarefa sua para o grupo trabalhar junto."
               />
             ) : tarefasGrupo.map(t => {
               const prazo = formatPrazo(t.prazo)

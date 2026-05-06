@@ -47,27 +47,54 @@ export default function TarefaDetalheScreen({ route, navigation }) {
   const [novoAnexoUrl, setNovoAnexoUrl] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [carregando, setCarregando] = useState(true)
+  const [gruposAdmin, setGruposAdmin] = useState(new Set())
 
   useEffect(() => {
     let cancelado = false
     ;(async () => {
-      const [rc, ra] = await Promise.all([
+      const [rc, ra, rg] = await Promise.all([
         api.get(`/api/comentarios/tarefa/${tarefa.idTarefa}`).catch(() => null),
         api.get(`/api/anexos/tarefa/${tarefa.idTarefa}`).catch(() => null),
+        api.get(`/api/grupos/usuario/${usuario.idUsuario}`).catch(() => null),
       ])
       if (cancelado) return
       setComentarios(rc?.data || [])
       setAnexos(ra?.data || [])
+      setGruposAdmin(new Set(
+        (rg?.data || [])
+          .filter(g => g.idAdmin === usuario.idUsuario)
+          .map(g => g.idGrupo)
+      ))
       setCarregando(false)
     })()
     return () => { cancelado = true }
   }, [tarefa.idTarefa])
 
+  function podeAlterarStatus() {
+    if (!tarefa.idsGrupos || tarefa.idsGrupos.length === 0) return true
+    return tarefa.idsGrupos.some(id => gruposAdmin.has(id))
+  }
+
   async function toggleStatus() {
+    if (!podeAlterarStatus()) {
+      Alert.alert(
+        'Sem permissão',
+        'Esta tarefa está compartilhada num grupo. Apenas o admin do grupo pode marcá-la como concluída.'
+      )
+      return
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {})
-    const endpoint = tarefa.status === 'concluida' ? 'reabrir' : 'concluir'
-    const { data } = await api.put(`/api/tarefas/${tarefa.idTarefa}/${endpoint}`)
-    setTarefa(data)
+    try {
+      const endpoint = tarefa.status === 'concluida' ? 'reabrir' : 'concluir'
+      const { data } = await api.put(`/api/tarefas/${tarefa.idTarefa}/${endpoint}`)
+      setTarefa(data)
+    } catch (e) {
+      if (e.response?.status === 403) {
+        Alert.alert('Sem permissão', 'Apenas o admin do grupo pode alterar o status.')
+      } else {
+        Alert.alert('Erro', 'Não foi possível alterar o status.')
+      }
+    }
   }
 
   function excluir() {
@@ -171,11 +198,14 @@ export default function TarefaDetalheScreen({ route, navigation }) {
 
             <Button
               variant={concluida ? 'secondary' : 'primary'}
-              icon={concluida ? 'refresh' : 'checkmark'}
+              icon={!podeAlterarStatus() ? 'lock-closed' : (concluida ? 'refresh' : 'checkmark')}
               onPress={toggleStatus}
               fullWidth
+              style={!podeAlterarStatus() ? { opacity: 0.55 } : undefined}
             >
-              {concluida ? 'Reabrir tarefa' : 'Marcar como concluída'}
+              {!podeAlterarStatus()
+                ? 'Apenas o admin pode marcar'
+                : (concluida ? 'Reabrir tarefa' : 'Marcar como concluída')}
             </Button>
           </View>
 

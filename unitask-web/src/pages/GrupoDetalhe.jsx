@@ -115,7 +115,7 @@ export default function GrupoDetalhe() {
           <button className={styles.btnCodigo} onClick={copiarCodigo}>
             {copiado ? '✓ Copiado!' : `📋 ${grupo.codigoConvite}`}
           </button>
-          {ehAdmin && aba === 'tarefas' && (
+          {aba === 'tarefas' && (
             <button className={styles.btnCompartilhar} onClick={() => setModalCompartilhar(true)}>
               + Compartilhar tarefa
             </button>
@@ -140,11 +140,9 @@ export default function GrupoDetalhe() {
             <div className={styles.empty}>
               <span>📋</span>
               <p>Nenhuma tarefa compartilhada neste grupo.</p>
-              {ehAdmin && (
-                <button className={styles.btnCompartilhar} onClick={() => setModalCompartilhar(true)}>
-                  + Compartilhar primeira tarefa
-                </button>
-              )}
+              <button className={styles.btnCompartilhar} onClick={() => setModalCompartilhar(true)}>
+                + Compartilhar primeira tarefa
+              </button>
             </div>
           ) : (
             <div className={styles.lista}>
