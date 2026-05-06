@@ -28,24 +28,39 @@ export default function GrupoDetalhe() {
   const [copiado, setCopiado] = useState(false)
 
   useEffect(() => {
-    Promise.all([
-      api.get(`/api/grupos/${id}`),
-      api.get(`/api/grupos/${id}/membros`),
-      api.get(`/api/grupos/${id}/tarefas`),
-      api.get(`/api/tarefas/usuario/${usuario.idUsuario}`),
-    ]).then(([rg, rm, rt, rmt]) => {
-      setGrupo(rg.data)
-      setMembros(rm.data)
-      setTarefasGrupo(rt.data)
-      setMinhasTarefas(rmt.data.filter(t => t.status === 'pendente'))
-    }).finally(() => setCarregando(false))
-  }, [id])
+    if (!usuario?.idUsuario) return
+    let cancelado = false
+    setCarregando(true)
+    ;(async () => {
+      const [rg, rm, rt, rmt] = await Promise.all([
+        api.get(`/api/grupos/${id}`).catch(() => null),
+        api.get(`/api/grupos/${id}/membros`).catch(() => null),
+        api.get(`/api/grupos/${id}/tarefas`).catch(() => null),
+        api.get(`/api/tarefas/usuario/${usuario.idUsuario}`).catch(() => null),
+      ])
+      if (cancelado) return
+      setGrupo(rg?.data || null)
+      setMembros(rm?.data || [])
+      setTarefasGrupo(rt?.data || [])
+      setMinhasTarefas((rmt?.data || []).filter(t => t.status === 'pendente'))
+      setCarregando(false)
+    })()
+    return () => { cancelado = true }
+  }, [id, usuario?.idUsuario])
+
+  async function recarregarMinhasTarefas() {
+    const { data } = await api.get(`/api/tarefas/usuario/${usuario.idUsuario}`)
+    setMinhasTarefas(data.filter(t => t.status === 'pendente'))
+  }
 
   async function compartilharTarefa() {
     if (!tarefaSelecionada) return
     await api.post(`/api/grupos/${id}/tarefas/${tarefaSelecionada}`)
-    const { data } = await api.get(`/api/grupos/${id}/tarefas`)
-    setTarefasGrupo(data)
+    const [rt] = await Promise.all([
+      api.get(`/api/grupos/${id}/tarefas`),
+      recarregarMinhasTarefas(),
+    ])
+    setTarefasGrupo(rt.data)
     setModalCompartilhar(false)
     setTarefaSelecionada('')
   }

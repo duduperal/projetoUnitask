@@ -10,6 +10,8 @@ import DashboardScreen from './src/screens/DashboardScreen'
 import TarefasScreen from './src/screens/TarefasScreen'
 import GruposScreen from './src/screens/GruposScreen'
 import NotificacoesScreen from './src/screens/NotificacoesScreen'
+import TarefaDetalheScreen from './src/screens/TarefaDetalheScreen'
+import GrupoDetalheScreen from './src/screens/GrupoDetalheScreen'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -64,7 +66,11 @@ function Routes() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {usuario ? (
-        <Stack.Screen name="Main" component={MainTabs} />
+        <>
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="TarefaDetalhe" component={TarefaDetalheScreen} />
+          <Stack.Screen name="GrupoDetalhe" component={GrupoDetalheScreen} />
+        </>
       ) : (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />

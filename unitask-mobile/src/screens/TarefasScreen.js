@@ -16,7 +16,7 @@ function formatarData(iso) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-export default function TarefasScreen() {
+export default function TarefasScreen({ navigation }) {
   const { usuario } = useAuth()
   const [tarefas, setTarefas] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -154,7 +154,11 @@ export default function TarefasScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3B82F6" />}
         ListEmptyComponent={<Text style={styles.vazio}>Nenhuma tarefa encontrada.</Text>}
         renderItem={({ item: t }) => (
-          <View style={[styles.card, t.status === 'concluida' && styles.cardConcluida]}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.card, t.status === 'concluida' && styles.cardConcluida]}
+            onPress={() => navigation.navigate('TarefaDetalhe', { tarefa: t })}
+          >
             <View style={styles.cardTop}>
               <TouchableOpacity
                 style={[styles.checkbox, t.status === 'concluida' && styles.checkboxMarcado]}
@@ -181,7 +185,7 @@ export default function TarefasScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
 

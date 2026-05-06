@@ -12,8 +12,6 @@ export default function Grupos() {
   const [carregando, setCarregando] = useState(true)
   const [modalCriar, setModalCriar] = useState(false)
   const [modalEntrar, setModalEntrar] = useState(false)
-  const [modalMembros, setModalMembros] = useState(null)
-  const [membros, setMembros] = useState([])
   const [formCriar, setFormCriar] = useState({ nome: '', descricao: '' })
   const [codigoConvite, setCodigoConvite] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -70,12 +68,6 @@ export default function Grupos() {
     }
   }
 
-  async function verMembros(grupo) {
-    setModalMembros(grupo)
-    const { data } = await api.get(`/api/grupos/${grupo.idGrupo}/membros`)
-    setMembros(data)
-  }
-
   async function excluirGrupo(id) {
     await api.delete(`/api/grupos/${id}`)
     setGrupos(prev => prev.filter(g => g.idGrupo !== id))
@@ -91,7 +83,6 @@ export default function Grupos() {
   function fecharModais() {
     setModalCriar(false)
     setModalEntrar(false)
-    setModalMembros(null)
     setErro('')
     setCodigoConvite('')
   }
@@ -235,37 +226,6 @@ export default function Grupos() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Membros */}
-      {modalMembros && (
-        <div className={styles.overlay} onClick={() => setModalMembros(null)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2>Membros — {modalMembros.nome}</h2>
-              <button className={styles.fechar} onClick={() => setModalMembros(null)}>✕</button>
-            </div>
-            <div className={styles.membrosList}>
-              {membros.length === 0 ? (
-                <p className={styles.empty}>Carregando...</p>
-              ) : (
-                membros.map((m, i) => {
-                  const [nome, papel] = m.split(' (')
-                  const papelLimpo = papel?.replace(')', '') || 'membro'
-                  return (
-                    <div key={i} className={styles.membroItem}>
-                      <div className={styles.membroAvatar}>{nome.charAt(0).toUpperCase()}</div>
-                      <span className={styles.membroNome}>{nome}</span>
-                      <span className={`${styles.papelBadge} ${papelLimpo === 'admin' ? styles.papelAdmin : ''}`}>
-                        {papelLimpo === 'admin' ? 'Admin' : 'Membro'}
-                      </span>
-                    </div>
-                  )
-                })
-              )}
-            </div>
           </div>
         </div>
       )}

@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 
-export default function GruposScreen() {
+export default function GruposScreen({ navigation }) {
   const { usuario } = useAuth()
   const [grupos, setGrupos] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -104,7 +104,11 @@ export default function GruposScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3B82F6" />}
         ListEmptyComponent={<Text style={styles.vazio}>Você não participa de nenhum grupo ainda.</Text>}
         renderItem={({ item: g }) => (
-          <View style={styles.card}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.card}
+            onPress={() => navigation.navigate('GrupoDetalhe', { grupo: g })}
+          >
             <View style={styles.cardHeader}>
               <View style={styles.grupoIcone}>
                 <Text style={styles.grupoLetra}>{g.nome[0].toUpperCase()}</Text>
