@@ -15,6 +15,7 @@ import NotificacoesScreen from './src/screens/NotificacoesScreen'
 import ConfiguracoesScreen from './src/screens/ConfiguracoesScreen'
 import TarefaDetalheScreen from './src/screens/TarefaDetalheScreen'
 import GrupoDetalheScreen from './src/screens/GrupoDetalheScreen'
+import AjudaScreen from './src/screens/AjudaScreen'
 import TabBar from './src/components/TabBar'
 import { colors } from './src/theme'
 
@@ -68,6 +69,7 @@ function Routes() {
           <Stack.Screen name="TarefaDetalhe" component={TarefaDetalheScreen} options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="GrupoDetalhe" component={GrupoDetalheScreen} options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="Notificacoes" component={NotificacoesScreen} options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="Ajuda" component={AjudaScreen} options={{ animation: 'slide_from_right' }} />
         </>
       ) : (
         <>

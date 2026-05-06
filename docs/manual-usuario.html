@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>UniTask — Manual do Usuário</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1f2937;
+    line-height: 1.6;
+    background: #f8fafc;
+    padding: 40px 20px;
+  }
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 60px 70px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  /* Capa */
+  .capa {
+    text-align: center;
+    padding: 80px 40px;
+    background: linear-gradient(135deg, #6B8AFF 0%, #4F6FE5 100%);
+    color: #fff;
+    border-radius: 8px;
+    margin-bottom: 50px;
+    page-break-after: always;
+  }
+  .capa .logo {
+    width: 88px;
+    height: 88px;
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    font-weight: 800;
+    margin: 0 auto 28px;
+  }
+  .capa h1 { font-size: 52px; font-weight: 800; letter-spacing: -1.2px; margin-bottom: 12px; }
+  .capa .sub { font-size: 20px; opacity: 0.92; margin-bottom: 40px; }
+  .capa .meta { font-size: 14px; opacity: 0.82; margin-top: 60px; }
+
+  /* Tipografia */
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 50px 0 18px;
+    letter-spacing: -0.5px;
+    border-bottom: 3px solid #6B8AFF;
+    padding-bottom: 12px;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 36px 0 14px;
+    letter-spacing: -0.3px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 24px 0 10px;
+    page-break-after: avoid;
+  }
+  p { margin-bottom: 12px; font-size: 14.5px; }
+  ul, ol { padding-left: 24px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; font-size: 14.5px; }
+  strong { color: #0F172A; font-weight: 700; }
+  code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: #4F6FE5;
+  }
+
+  /* Sumário */
+  .sumario {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 50px;
+  }
+  .sumario h2 {
+    margin-top: 0;
+    font-size: 18px;
+    color: #4F6FE5;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+  }
+  .sumario ol { padding-left: 22px; }
+  .sumario li {
+    padding: 6px 0;
+    font-size: 14px;
+    color: #334155;
+  }
+
+  /* Box info */
+  .info, .warn, .tip {
+    border-left: 4px solid;
+    padding: 14px 18px;
+    margin: 18px 0;
+    border-radius: 4px;
+    font-size: 13.5px;
+  }
+  .info { background: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+  .warn { background: #fef3c7; border-color: #f59e0b; color: #78350f; }
+  .tip  { background: #ecfdf5; border-color: #10b981; color: #064e3b; }
+
+  /* Steps */
+  .steps {
+    counter-reset: stp;
+    list-style: none;
+    padding-left: 0;
+  }
+  .steps li {
+    counter-increment: stp;
+    position: relative;
+    padding: 8px 0 8px 44px;
+    margin-bottom: 8px;
+  }
+  .steps li::before {
+    content: counter(stp);
+    position: absolute;
+    left: 0; top: 6px;
+    width: 30px;
+    height: 30px;
+    background: #6B8AFF;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* Tabela */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  th {
+    background: #f8fafc;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-primary { background: #DBE5FF; color: #4F6FE5; }
+  .badge-warn    { background: #FEF3C7; color: #b45309; }
+  .badge-success { background: #D1FAE5; color: #047857; }
+  .badge-danger  { background: #FEE2E2; color: #b91c1c; }
+
+  /* Quebra de seção */
+  section { page-break-inside: avoid; }
+  .breakbefore { page-break-before: always; }
+
+  /* Print */
+  @media print {
+    body { padding: 0; background: #fff; }
+    .page { box-shadow: none; padding: 30px 40px; max-width: 100%; border-radius: 0; }
+    .capa { padding: 100px 40px; }
+    h1 { font-size: 26px; }
+    h2 { font-size: 19px; }
+    .no-print { display: none; }
+  }
+
+  .barra-print {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: #4F6FE5;
+    color: #fff;
+    padding: 14px 22px;
+    border-radius: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 8px 20px rgba(75,111,229,0.4);
+    font-size: 14px;
+    z-index: 100;
+  }
+  .barra-print:hover { background: #4060d4; }
+</style>
+</head>
+<body>
+
+<div class="page capa">
+  <div class="logo">U</div>
+  <h1>UniTask</h1>
+  <p class="sub">Manual do Usuário</p>
+  <p class="meta">Versão 1.0 · App e Site · Português (Brasil)</p>
+</div>
+
+<div class="page">
+
+<div class="sumario">
+  <h2>Sumário</h2>
+  <ol>
+    <li>Sobre o UniTask</li>
+    <li>Primeiros passos: cadastro e login</li>
+    <li>Conhecendo o Dashboard</li>
+    <li>Tarefas: criar, editar e organizar</li>
+    <li>Detalhes da tarefa: comentários e anexos</li>
+    <li>Grupos: trabalhar em equipe</li>
+    <li>Compartilhar tarefas com o grupo</li>
+    <li>Notificações</li>
+    <li>Configurações da conta</li>
+    <li>Diferenças entre Web e App</li>
+    <li>Solução de problemas (FAQ)</li>
+    <li>Suporte e contato</li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<section>
+<h1>1. Sobre o UniTask</h1>
+<p>O <strong>UniTask</strong> é um aplicativo de organização de tarefas acadêmicas em grupo. Foi pensado para estudantes que precisam acompanhar trabalhos individuais e em equipe, com prazos, prioridades, comentários e arquivos compartilhados.</p>
+
+<h3>O que dá pra fazer</h3>
+<ul>
+  <li>Criar tarefas com prazo, prioridade e descrição</li>
+  <li>Marcar tarefas como concluídas e ver progresso</li>
+  <li>Criar grupos de estudo e convidar colegas por código</li>
+  <li>Compartilhar tarefas com o grupo todo</li>
+  <li>Comentar e anexar links em qualquer tarefa</li>
+  <li>Receber alertas de prazos próximos ou vencidos</li>
+</ul>
+
+<h3>Onde usar</h3>
+<p>O UniTask está disponível em duas plataformas, sincronizadas entre si:</p>
+<ul>
+  <li><strong>Site (Web)</strong> — acesse pelo navegador, ideal pra trabalhos longos no computador</li>
+  <li><strong>App (Mobile)</strong> — celular Android ou iOS, ideal pro dia a dia</li>
+</ul>
+<div class="info">As duas plataformas usam a mesma conta. O que você criar no site aparece no celular, e vice-versa.</div>
+</section>
+
+<!-- 2 -->
+<section class="breakbefore">
+<h1>2. Primeiros passos: cadastro e login</h1>
+
+<h2>Criar uma conta</h2>
+<ol class="steps">
+  <li>Abra o UniTask (no site ou no app) e toque em <strong>"Cadastre-se"</strong>.</li>
+  <li>Preencha: <strong>nome completo</strong>, <strong>e-mail</strong> e <strong>senha</strong>.</li>
+  <li>A senha precisa ter pelo menos <strong>6 caracteres</strong>. Confirme repetindo no segundo campo.</li>
+  <li>Toque em <strong>Criar minha conta</strong>. Pronto — você será redirecionado pra tela de login.</li>
+</ol>
+<div class="tip"><strong>Dica:</strong> No app, o indicador de força da senha mostra se ela está fraca, média ou forte. Senhas mais longas são mais seguras.</div>
+
+<h2>Fazer login</h2>
+<ol class="steps">
+  <li>Digite seu <strong>e-mail</strong> e <strong>senha</strong> cadastrados.</li>
+  <li>Toque no ícone do olho 👁 pra revelar a senha caso precise conferir.</li>
+  <li>Toque em <strong>Entrar</strong>.</li>
+</ol>
+<div class="warn"><strong>Esqueceu a senha?</strong> Essa funcionalidade está em desenvolvimento. Por enquanto, entre em contato pelo suporte (ver seção 12).</div>
+</section>
+
+<!-- 3 -->
+<section class="breakbefore">
+<h1>3. Conhecendo o Dashboard</h1>
+<p>O Dashboard é a tela inicial. Aqui você tem um resumo rápido da sua semana.</p>
+
+<h3>O que aparece</h3>
+<ul>
+  <li><strong>Saudação personalizada</strong> com base na hora do dia</li>
+  <li><strong>Card de progresso</strong>: quantas tarefas concluídas vs. total, com percentual</li>
+  <li><strong>Mini-estatísticas</strong>: pendentes, concluídas e número de grupos</li>
+  <li><strong>Próximas tarefas</strong>: até 3 tarefas com prazo se aproximando</li>
+  <li><strong>Meus grupos</strong>: lista horizontal dos grupos dos quais você participa</li>
+</ul>
+
+<div class="tip"><strong>No app mobile</strong>, arraste a tela pra baixo (pull to refresh) pra atualizar os dados.</div>
+</section>
+
+<!-- 4 -->
+<section class="breakbefore">
+<h1>4. Tarefas: criar, editar e organizar</h1>
+
+<h2>Criar uma tarefa</h2>
+<ol class="steps">
+  <li>Acesse a aba <strong>Tarefas</strong>.</li>
+  <li>Toque no botão <strong>+</strong> (canto inferior no app, canto superior no site).</li>
+  <li>Preencha:
+    <ul>
+      <li><strong>Título</strong> (obrigatório)</li>
+      <li><strong>Descrição</strong> (opcional)</li>
+      <li><strong>Prioridade</strong>: Alta, Média ou Baixa</li>
+      <li><strong>Prazo</strong> (somente no site, por enquanto)</li>
+    </ul>
+  </li>
+  <li>Toque em <strong>Criar</strong>.</li>
+</ol>
+
+<h2>Filtrar e buscar</h2>
+<p>No topo da lista de tarefas você encontra:</p>
+<ul>
+  <li><strong>Filtros</strong>: <span class="badge badge-primary">Todas</span> <span class="badge badge-warn">Pendentes</span> <span class="badge badge-success">Concluídas</span></li>
+  <li><strong>Busca</strong>: digite parte do título pra filtrar a lista</li>
+</ul>
+
+<h2>Marcar como concluída</h2>
+<p>Toque no <strong>círculo</strong> ao lado da tarefa pra marcá-la como feita. Toque novamente pra reabrir.</p>
+
+<h2>Editar ou excluir</h2>
+<p>Abra a tarefa (toque sobre ela) — você verá os botões de <strong>editar</strong> e <strong>excluir</strong>. A exclusão pede confirmação e <strong>não pode ser desfeita</strong>.</p>
+
+<h3>Sobre prioridades</h3>
+<table>
+  <tr><th>Prioridade</th><th>Quando usar</th></tr>
+  <tr><td><span class="badge badge-danger">Alta</span></td><td>Trabalhos com prazo curto ou peso grande na nota</td></tr>
+  <tr><td><span class="badge badge-warn">Média</span></td><td>Atividades normais da rotina acadêmica</td></tr>
+  <tr><td><span class="badge badge-success">Baixa</span></td><td>Estudos extras, leituras opcionais</td></tr>
+</table>
+</section>
+
+<!-- 5 -->
+<section class="breakbefore">
+<h1>5. Detalhes da tarefa: comentários e anexos</h1>
+
+<p>Ao abrir uma tarefa você vê uma tela de detalhes com duas abas:</p>
+
+<h2>Aba Comentários</h2>
+<ul>
+  <li>Veja todos os comentários da tarefa, com autor e data</li>
+  <li>Escreva um novo comentário no campo de texto e envie</li>
+  <li>Você pode <strong>excluir os seus próprios</strong> comentários (não os de outros)</li>
+</ul>
+
+<h2>Aba Anexos</h2>
+<ul>
+  <li>Veja arquivos/links anexados</li>
+  <li>Pra adicionar: informe um <strong>nome</strong> e cole a <strong>URL</strong> (ex: link do Google Drive, Dropbox, OneDrive)</li>
+  <li>Toque no nome pra abrir o link</li>
+  <li>Você pode excluir <strong>seus próprios</strong> anexos</li>
+</ul>
+<div class="info">O UniTask <strong>não armazena</strong> arquivos diretamente — os anexos são links pra arquivos hospedados em outros serviços (Drive, Dropbox, etc). Isso mantém o app leve e seu material seguro onde você já confia.</div>
+</section>
+
+<!-- 6 -->
+<section class="breakbefore">
+<h1>6. Grupos: trabalhar em equipe</h1>
+
+<h2>Criar um grupo</h2>
+<ol class="steps">
+  <li>Acesse a aba <strong>Grupos</strong>.</li>
+  <li>Toque em <strong>Criar grupo</strong>.</li>
+  <li>Dê um <strong>nome</strong> ao grupo (ex: "TCC Engenharia") e uma <strong>descrição</strong> (opcional).</li>
+  <li>Pronto — você é o <strong>Admin</strong> do grupo.</li>
+</ol>
+
+<h2>Convidar colegas</h2>
+<p>Ao criar o grupo, o sistema gera um <strong>código de convite</strong> único. Compartilhe esse código com os colegas que devem entrar.</p>
+<ol class="steps">
+  <li>Abra o grupo e copie o código (toque sobre ele).</li>
+  <li>Mande pro colega via WhatsApp, e-mail, etc.</li>
+  <li>O colega precisa, no UniTask dele, tocar em <strong>Entrar com código</strong> e colar o código.</li>
+</ol>
+
+<h2>Papéis no grupo</h2>
+<table>
+  <tr><th>Papel</th><th>Pode</th></tr>
+  <tr>
+    <td><span class="badge badge-primary">Admin</span></td>
+    <td>Compartilhar tarefas no grupo, remover tarefas, deletar o grupo</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-success">Membro</span></td>
+    <td>Ver tarefas do grupo, ver lista de membros, comentar/anexar nas tarefas compartilhadas</td>
+  </tr>
+</table>
+
+<h2>Sair / deletar grupo</h2>
+<p>O <strong>Admin</strong> pode deletar o grupo (ação destrutiva, com confirmação). A funcionalidade de <em>sair</em> de um grupo como membro está em desenvolvimento.</p>
+</section>
+
+<!-- 7 -->
+<section class="breakbefore">
+<h1>7. Compartilhar tarefas com o grupo</h1>
+
+<p>O Admin do grupo pode pegar uma tarefa <strong>já criada na conta dele</strong> e disponibilizar pro grupo todo:</p>
+
+<ol class="steps">
+  <li>Entre no grupo (toque sobre o card na aba Grupos).</li>
+  <li>Na aba <strong>Tarefas</strong>, toque em <strong>+ Compartilhar tarefa</strong>.</li>
+  <li>Escolha uma das suas tarefas pendentes que ainda não está no grupo.</li>
+  <li>Confirme. A tarefa agora aparece pra todos os membros.</li>
+</ol>
+
+<div class="tip"><strong>Dica:</strong> A tarefa continua sendo "sua" — só fica visível pro grupo. Os membros podem comentar e anexar coisas, mas só você (criador) e o admin podem editar/excluir.</div>
+
+<h3>Remover do grupo</h3>
+<p>O Admin pode remover uma tarefa do grupo a qualquer momento. Isso <strong>não deleta</strong> a tarefa — só tira do grupo.</p>
+</section>
+
+<!-- 8 -->
+<section class="breakbefore">
+<h1>8. Notificações</h1>
+
+<p>O UniTask te avisa sobre prazos. Os tipos são:</p>
+<table>
+  <tr><th>Tipo</th><th>Significa</th></tr>
+  <tr><td><span class="badge badge-warn">24h</span></td><td>Tarefa vence em até 24 horas</td></tr>
+  <tr><td><span class="badge badge-danger">1h</span></td><td>Tarefa vence em até 1 hora</td></tr>
+  <tr><td><span class="badge badge-danger">Vencida</span></td><td>Prazo já passou e a tarefa não foi concluída</td></tr>
+</table>
+
+<h3>Como acessar</h3>
+<ul>
+  <li><strong>Site</strong>: aba "Notificações" no menu lateral</li>
+  <li><strong>App</strong>: ícone do sino 🔔 no Dashboard, ou <em>Ajustes → Ver notificações</em></li>
+</ul>
+
+<h3>Marcar como lida</h3>
+<p>Toque sobre a notificação pra marcá-la como lida. Você pode também <strong>marcar todas</strong> de uma vez no botão do topo.</p>
+</section>
+
+<!-- 9 -->
+<section class="breakbefore">
+<h1>9. Configurações da conta</h1>
+
+<h2>No site</h2>
+<p>A aba <strong>Configurações</strong> mostra seus dados (nome, e-mail, ID) e o botão pra sair da conta.</p>
+
+<h2>No app (Ajustes)</h2>
+<p>A aba <strong>Ajustes</strong> tem mais opções:</p>
+<ul>
+  <li><strong>Perfil</strong>: avatar, nome, e-mail</li>
+  <li><strong>Conta</strong>: editar perfil, alterar senha (em desenvolvimento)</li>
+  <li><strong>Notificações</strong>: ligar/desligar push e e-mail</li>
+  <li><strong>Aparência</strong>: tema (em breve), idioma (em breve)</li>
+  <li><strong>Suporte</strong>: ajuda, feedback, sobre o app</li>
+  <li><strong>Sair da conta</strong> (com confirmação)</li>
+</ul>
+</section>
+
+<!-- 10 -->
+<section class="breakbefore">
+<h1>10. Diferenças entre Web e App</h1>
+
+<table>
+  <tr><th>Recurso</th><th>Site</th><th>App</th></tr>
+  <tr><td>Login / Cadastro</td><td>✅</td><td>✅</td></tr>
+  <tr><td>Dashboard com progresso</td><td>✅</td><td>✅ (mais visual)</td></tr>
+  <tr><td>Criar tarefa com <strong>prazo</strong></td><td>✅</td><td>—</td></tr>
+  <tr><td>Comentários e anexos</td><td>✅</td><td>✅</td></tr>
+  <tr><td>Criar / entrar em grupos</td><td>✅</td><td>✅</td></tr>
+  <tr><td>Compartilhar tarefa em grupo</td><td>✅</td><td>✅</td></tr>
+  <tr><td>Notificações</td><td>✅</td><td>✅</td></tr>
+  <tr><td>Vibração ao tocar (haptics)</td><td>—</td><td>✅</td></tr>
+  <tr><td>Pull-to-refresh</td><td>—</td><td>✅</td></tr>
+  <tr><td>Configurações de notificação</td><td>—</td><td>✅</td></tr>
+</table>
+
+<p>Use o site quando precisar editar tarefas com mais conforto e definir prazos exatos. Use o app pra acompanhar tudo no dia a dia.</p>
+</section>
+
+<!-- 11 -->
+<section class="breakbefore">
+<h1>11. Solução de problemas (FAQ)</h1>
+
+<h3>Não consigo entrar — diz "credenciais inválidas"</h3>
+<p>Confira se digitou o e-mail correto e a senha exata (atenção a maiúsculas/minúsculas). Se você acabou de cadastrar, certifique-se de fazer login com o mesmo e-mail e senha que digitou no cadastro.</p>
+
+<h3>Criei a conta no app, ela funciona no site?</h3>
+<p>Sim. A conta é a mesma. Use o mesmo e-mail e senha em ambos.</p>
+
+<h3>Onde fica meu código de convite do grupo?</h3>
+<p>Abra o grupo (na aba Grupos, toque sobre ele). O código aparece em destaque no card. Toque nele pra copiar.</p>
+
+<h3>Compartilhei uma tarefa, o membro não vê</h3>
+<p>Peça pro membro fechar e abrir o grupo de novo, ou puxar a tela pra atualizar (no app). Se mesmo assim não aparecer, verifique se ele realmente entrou no grupo (aba Membros).</p>
+
+<h3>Anexei um link mas ele não abre</h3>
+<p>Confira se a URL começa com <code>http://</code> ou <code>https://</code>. Links sem protocolo podem não abrir corretamente.</p>
+
+<h3>Excluí uma tarefa por engano</h3>
+<p>Infelizmente não há <em>desfazer</em> no momento. A exclusão é definitiva. Por isso o app sempre pede confirmação antes.</p>
+
+<h3>Não estou recebendo notificações no celular</h3>
+<p>Notificações push estão em desenvolvimento. Por enquanto, os alertas aparecem dentro do app na aba Notificações.</p>
+</section>
+
+<!-- 12 -->
+<section class="breakbefore">
+<h1>12. Suporte e contato</h1>
+
+<p>Se precisar de ajuda ou quiser sugerir melhorias:</p>
+<ul>
+  <li><strong>GitHub do projeto</strong>: <code>github.com/duduperal/projetoUnitask</code></li>
+  <li><strong>Feedback por e-mail</strong>: pelo botão <em>Enviar feedback</em> dentro de Ajustes</li>
+  <li><strong>Reporte bugs</strong>: abrindo uma issue no GitHub</li>
+</ul>
+
+<div class="info">
+  <strong>Versão deste manual:</strong> 1.0 · UniTask v1.0.0<br>
+  <strong>Última atualização:</strong> 2026
+</div>
+
+<p style="text-align:center; margin-top: 60px; color: #94a3b8; font-size: 13px;">
+  Feito com <span style="color:#ef4444;">♥</span> por Eduardo Peral
+</p>
+
+</section>
+
+</div>
+
+<button class="barra-print no-print" onclick="window.print()">📄 Salvar como PDF</button>
+
+</body>
+</html>

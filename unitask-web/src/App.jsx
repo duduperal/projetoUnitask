@@ -9,6 +9,7 @@ import Grupos from './pages/Grupos'
 import GrupoDetalhe from './pages/GrupoDetalhe'
 import Notificacoes from './pages/Notificacoes'
 import Configuracoes from './pages/Configuracoes'
+import Ajuda from './pages/Ajuda'
 
 function RotaProtegida({ children }) {
   const { usuario, carregando } = useAuth()
@@ -28,6 +29,7 @@ function App() {
       <Route path="/grupos/:id" element={<RotaProtegida><GrupoDetalhe /></RotaProtegida>} />
       <Route path="/notificacoes" element={<RotaProtegida><Notificacoes /></RotaProtegida>} />
       <Route path="/configuracoes" element={<RotaProtegida><Configuracoes /></RotaProtegida>} />
+      <Route path="/ajuda" element={<RotaProtegida><Ajuda /></RotaProtegida>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

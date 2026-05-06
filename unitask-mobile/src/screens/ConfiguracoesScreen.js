@@ -31,6 +31,10 @@ export default function ConfiguracoesScreen({ navigation }) {
     Linking.openURL('https://github.com/duduperal/projetoUnitask').catch(() => {})
   }
 
+  function abrirAjuda() {
+    navigation.navigate('Ajuda')
+  }
+
   const versao = '1.0.0'
 
   return (
@@ -120,7 +124,7 @@ export default function ConfiguracoesScreen({ navigation }) {
             icon="help-circle-outline"
             label="Central de ajuda"
             sub="Tire suas dúvidas"
-            onPress={abrirSite}
+            onPress={abrirAjuda}
           />
           <Sep />
           <Item

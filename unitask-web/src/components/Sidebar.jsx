@@ -8,6 +8,7 @@ const navItems = [
   { path: '/grupos', icon: '👥', label: 'Grupos' },
   { path: '/notificacoes', icon: '🔔', label: 'Notificações' },
   { path: '/configuracoes', icon: '⚙', label: 'Configurações' },
+  { path: '/ajuda', icon: '?', label: 'Ajuda' },
 ]
 
 export default function Sidebar({ open, onClose }) {
