@@ -12,6 +12,7 @@ import DashboardScreen from './src/screens/DashboardScreen'
 import TarefasScreen from './src/screens/TarefasScreen'
 import GruposScreen from './src/screens/GruposScreen'
 import NotificacoesScreen from './src/screens/NotificacoesScreen'
+import ConfiguracoesScreen from './src/screens/ConfiguracoesScreen'
 import TarefaDetalheScreen from './src/screens/TarefaDetalheScreen'
 import GrupoDetalheScreen from './src/screens/GrupoDetalheScreen'
 import TabBar from './src/components/TabBar'
@@ -43,7 +44,7 @@ function MainTabs() {
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Tarefas" component={TarefasScreen} />
       <Tab.Screen name="Grupos" component={GruposScreen} />
-      <Tab.Screen name="Notificacoes" component={NotificacoesScreen} />
+      <Tab.Screen name="Configuracoes" component={ConfiguracoesScreen} />
     </Tab.Navigator>
   )
 }
@@ -66,6 +67,7 @@ function Routes() {
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="TarefaDetalhe" component={TarefaDetalheScreen} options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="GrupoDetalhe" component={GrupoDetalheScreen} options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="Notificacoes" component={NotificacoesScreen} options={{ animation: 'slide_from_right' }} />
         </>
       ) : (
         <>

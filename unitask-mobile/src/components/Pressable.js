@@ -1,10 +1,15 @@
 import { useRef } from 'react'
-import { Animated, Pressable, View } from 'react-native'
+import { Animated, Pressable } from 'react-native'
 import * as Haptics from 'expo-haptics'
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 /**
  * Pressable com escala animada e haptic feedback.
  * Use como wrapper para qualquer card/botão clicável.
+ *
+ * Aplica animação direto no Pressable (via Animated.createAnimatedComponent),
+ * o que evita o problema de layout do Animated.View interno colapsando.
  */
 export default function PressableScale({
   onPress,
@@ -14,6 +19,7 @@ export default function PressableScale({
   style,
   children,
   disabled,
+  hitSlop,
   ...rest
 }) {
   const scaleAnim = useRef(new Animated.Value(1)).current
@@ -40,24 +46,24 @@ export default function PressableScale({
     if (disabled) return
     if (haptic && Haptics?.impactAsync) {
       const map = { light: 'Light', medium: 'Medium', heavy: 'Heavy' }
-      const style = Haptics.ImpactFeedbackStyle?.[map[haptic]]
-      if (style) Haptics.impactAsync(style).catch(() => {})
+      const fbStyle = Haptics.ImpactFeedbackStyle?.[map[haptic]]
+      if (fbStyle) Haptics.impactAsync(fbStyle).catch(() => {})
     }
     onPress?.()
   }
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPressIn={pressIn}
       onPressOut={pressOut}
       onPress={handlePress}
       onLongPress={onLongPress}
       disabled={disabled}
+      hitSlop={hitSlop}
+      style={[style, { transform: [{ scale: scaleAnim }] }]}
       {...rest}
     >
-      <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
-        {children}
-      </Animated.View>
-    </Pressable>
+      {children}
+    </AnimatedPressable>
   )
 }

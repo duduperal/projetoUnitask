@@ -9,6 +9,7 @@ const ICONS = {
   Tarefas: { active: 'checkbox', inactive: 'checkbox-outline' },
   Grupos: { active: 'people', inactive: 'people-outline' },
   Notificacoes: { active: 'notifications', inactive: 'notifications-outline' },
+  Configuracoes: { active: 'settings', inactive: 'settings-outline' },
 }
 
 const LABELS = {
@@ -16,6 +17,7 @@ const LABELS = {
   Tarefas: 'Tarefas',
   Grupos: 'Grupos',
   Notificacoes: 'Alertas',
+  Configuracoes: 'Ajustes',
 }
 
 export default function TabBar({ state, descriptors, navigation }) {
