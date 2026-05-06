@@ -1,18 +1,31 @@
 import { useEffect, useState } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, ActivityIndicator, Alert, FlatList, Platform,
+  View, Text, StyleSheet, ScrollView,
+  Modal, ActivityIndicator, Alert, FlatList,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import PressableScale from '../components/Pressable'
+import Card from '../components/Card'
+import Button from '../components/Button'
+import Avatar from '../components/Avatar'
+import EmptyState from '../components/EmptyState'
+import { colors, spacing, radius, typography } from '../theme'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
-const PRIO_COR = { alta: '#EF4444', media: '#F59E0B', baixa: '#10B981' }
 
-function formatarData(iso) {
+function formatPrazo(iso) {
   if (!iso) return null
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const d = new Date(iso)
+  const hoje = new Date()
+  const diff = Math.ceil((d - hoje) / (1000 * 60 * 60 * 24))
+  if (diff < 0) return { label: 'Vencida', cor: colors.danger }
+  if (diff === 0) return { label: 'Hoje', cor: colors.warning }
+  if (diff <= 7) return { label: `Em ${diff}d`, cor: colors.textSecondary }
+  return { label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }), cor: colors.textMuted }
 }
 
 export default function GrupoDetalheScreen({ route, navigation }) {
@@ -51,13 +64,14 @@ export default function GrupoDetalheScreen({ route, navigation }) {
       await api.post(`/api/grupos/${grupo.idGrupo}/tarefas/${idTarefa}`)
       const { data } = await api.get(`/api/grupos/${grupo.idGrupo}/tarefas`)
       setTarefasGrupo(data)
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
       setModalCompartilhar(false)
     } catch {
-      Alert.alert('Erro', 'Não foi possível compartilhar a tarefa.')
+      Alert.alert('Erro', 'Não foi possível compartilhar.')
     } finally { setSalvando(false) }
   }
 
-  async function removerDoGrupo(idTarefa) {
+  function removerDoGrupo(idTarefa) {
     Alert.alert('Remover do grupo?', 'A tarefa não será mais compartilhada.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: async () => {
@@ -68,7 +82,8 @@ export default function GrupoDetalheScreen({ route, navigation }) {
   }
 
   function copiarCodigo() {
-    Alert.alert('Código de convite', `${grupo.codigoConvite}\n\nCompartilhe este código.`)
+    Haptics.selectionAsync().catch(() => {})
+    Alert.alert('Código de convite', `${grupo.codigoConvite}\n\nCompartilhe com seus colegas.`)
   }
 
   const tarefasNaoCompartilhadas = minhasTarefas.filter(
@@ -76,109 +91,134 @@ export default function GrupoDetalheScreen({ route, navigation }) {
   )
 
   if (carregando) return (
-    <SafeAreaView style={styles.safe}>
-      <ActivityIndicator color="#3B82F6" style={{ marginTop: 40 }} />
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <ActivityIndicator color={colors.primary} style={{ marginTop: 60 }} />
     </SafeAreaView>
   )
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.headerNav}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.btnVoltar}>
-          <Text style={styles.btnVoltarText}>← Grupos</Text>
-        </TouchableOpacity>
-        {ehAdmin && (
-          <View style={styles.adminPill}>
-            <Text style={styles.adminPillText}>Admin</Text>
-          </View>
-        )}
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Top bar */}
+      <View style={styles.topbar}>
+        <PressableScale onPress={() => navigation.goBack()} haptic="light" style={styles.iconBtn}>
+          <Ionicons name="chevron-back" size={22} color={colors.text} />
+        </PressableScale>
+        <Text style={styles.topTitulo}>Grupo</Text>
+        <View style={styles.iconBtn} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         <View style={styles.body}>
-          <View style={styles.grupoTop}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarLetra}>{grupo.nome[0].toUpperCase()}</Text>
-            </View>
+          {/* Hero do grupo */}
+          <View style={styles.heroRow}>
+            <Avatar nome={grupo.nome} size={64} square />
             <View style={{ flex: 1 }}>
-              <Text style={styles.titulo}>{grupo.nome}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <Text style={styles.titulo}>{grupo.nome}</Text>
+                {ehAdmin && (
+                  <View style={styles.adminPill}>
+                    <Ionicons name="star" size={10} color={colors.primary} />
+                    <Text style={styles.adminText}>Admin</Text>
+                  </View>
+                )}
+              </View>
               {grupo.descricao ? <Text style={styles.descricao}>{grupo.descricao}</Text> : null}
             </View>
           </View>
 
-          <TouchableOpacity style={styles.codigoBox} onPress={copiarCodigo}>
-            <Text style={styles.codigoLabel}>Código de convite</Text>
-            <Text style={styles.codigoValor}>📋 {grupo.codigoConvite}</Text>
-          </TouchableOpacity>
+          {/* Código de convite */}
+          <PressableScale onPress={copiarCodigo} haptic="light" scale={0.98} style={styles.codigoCard}>
+            <View style={styles.codigoIcone}>
+              <Ionicons name="key" size={18} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.codigoLabel}>Código de convite</Text>
+              <Text style={styles.codigoValor}>{grupo.codigoConvite}</Text>
+            </View>
+            <Ionicons name="copy-outline" size={18} color={colors.primary} />
+          </PressableScale>
 
           {ehAdmin && aba === 'tarefas' && (
-            <TouchableOpacity style={styles.btnCompartilhar} onPress={() => setModalCompartilhar(true)}>
-              <Text style={styles.btnCompartilharText}>+ Compartilhar tarefa</Text>
-            </TouchableOpacity>
+            <Button
+              variant="primary"
+              icon="add"
+              fullWidth
+              onPress={() => setModalCompartilhar(true)}
+              style={{ marginTop: spacing.md }}
+            >
+              Compartilhar tarefa
+            </Button>
           )}
         </View>
 
+        {/* Abas */}
         <View style={styles.abas}>
-          <TouchableOpacity
-            style={[styles.aba, aba === 'tarefas' && styles.abaAtiva]}
-            onPress={() => setAba('tarefas')}
-          >
-            <Text style={[styles.abaText, aba === 'tarefas' && styles.abaTextAtiva]}>
-              ✅ Tarefas ({tarefasGrupo.length})
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.aba, aba === 'membros' && styles.abaAtiva]}
-            onPress={() => setAba('membros')}
-          >
-            <Text style={[styles.abaText, aba === 'membros' && styles.abaTextAtiva]}>
-              👥 Membros ({membros.length})
-            </Text>
-          </TouchableOpacity>
+          <TabBtn label="Tarefas" count={tarefasGrupo.length} ativa={aba === 'tarefas'} onPress={() => setAba('tarefas')} icon="checkbox-outline" />
+          <TabBtn label="Membros" count={membros.length} ativa={aba === 'membros'} onPress={() => setAba('membros')} icon="people-outline" />
         </View>
 
         {aba === 'tarefas' ? (
           <View style={styles.lista}>
             {tarefasGrupo.length === 0 ? (
-              <Text style={styles.vazio}>Nenhuma tarefa compartilhada.</Text>
-            ) : tarefasGrupo.map(t => (
-              <TouchableOpacity
-                key={t.idTarefa}
-                style={[styles.cardTarefa, t.status === 'concluida' && { opacity: 0.55 }]}
-                onPress={() => navigation.navigate('TarefaDetalhe', { tarefa: t })}
-              >
-                <View style={[styles.statusDot, { backgroundColor: t.status === 'concluida' ? '#10B981' : '#F59E0B' }]} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.tarefaTitulo, t.status === 'concluida' && styles.riscado]} numberOfLines={2}>{t.titulo}</Text>
-                  {t.prazo && <Text style={styles.tarefaPrazo}>📅 {formatarData(t.prazo)}</Text>}
-                </View>
-                <View style={[styles.prioBadge, { backgroundColor: PRIO_COR[t.prioridade] + '22' }]}>
-                  <Text style={[styles.prioText, { color: PRIO_COR[t.prioridade] }]}>{LABEL_PRIO[t.prioridade]}</Text>
-                </View>
-                {ehAdmin && (
-                  <TouchableOpacity onPress={() => removerDoGrupo(t.idTarefa)} hitSlop={10}>
-                    <Text style={styles.btnRemover}>✕</Text>
-                  </TouchableOpacity>
-                )}
-              </TouchableOpacity>
-            ))}
+              <EmptyState
+                icon="folder-open-outline"
+                title="Nenhuma tarefa compartilhada"
+                description={ehAdmin ? 'Compartilhe uma tarefa sua para o grupo trabalhar junto.' : 'Aguarde o admin compartilhar tarefas.'}
+              />
+            ) : tarefasGrupo.map(t => {
+              const prazo = formatPrazo(t.prazo)
+              const concluida = t.status === 'concluida'
+              return (
+                <Card
+                  key={t.idTarefa}
+                  padding="lg"
+                  onPress={() => navigation.navigate('TarefaDetalhe', { tarefa: t })}
+                  style={[{ marginBottom: spacing.sm }, concluida && { opacity: 0.6 }]}
+                >
+                  <View style={styles.tarefaRow}>
+                    <View style={[styles.statusDot, { backgroundColor: concluida ? colors.success : colors.warning }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.tarefaTitulo, concluida && styles.riscado]} numberOfLines={2}>{t.titulo}</Text>
+                      <View style={styles.metaRow}>
+                        <View style={[styles.prioPill, { backgroundColor: colors.prioSoft[t.prioridade] }]}>
+                          <Text style={[styles.prioPillText, { color: colors.prio[t.prioridade] }]}>{LABEL_PRIO[t.prioridade]}</Text>
+                        </View>
+                        {prazo && (
+                          <Text style={[styles.prazoText, { color: prazo.cor }]}>📅 {prazo.label}</Text>
+                        )}
+                      </View>
+                    </View>
+                    {ehAdmin && (
+                      <PressableScale onPress={() => removerDoGrupo(t.idTarefa)} haptic="medium" hitSlop={10} style={styles.removerBtn}>
+                        <Ionicons name="close" size={16} color={colors.danger} />
+                      </PressableScale>
+                    )}
+                  </View>
+                </Card>
+              )
+            })}
           </View>
         ) : (
           <View style={styles.lista}>
             {membros.map((m, i) => {
               const [nome, papel] = m.split(' (')
               const papelLimpo = papel?.replace(')', '') || 'membro'
+              const ehAdminMembro = papelLimpo === 'admin'
               return (
-                <View key={i} style={styles.cardMembro}>
-                  <View style={styles.membroAvatar}>
-                    <Text style={styles.membroAvatarText}>{nome[0].toUpperCase()}</Text>
-                  </View>
-                  <Text style={styles.membroNome}>{nome}</Text>
-                  <View style={[styles.papel, papelLimpo === 'admin' && styles.papelAdmin]}>
-                    <Text style={[styles.papelText, papelLimpo === 'admin' && styles.papelAdminText]}>
-                      {papelLimpo === 'admin' ? 'Admin' : 'Membro'}
+                <View key={i} style={styles.membroCard}>
+                  <Avatar nome={nome} size={40} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.membroNome}>{nome}</Text>
+                    <Text style={styles.membroPapel}>
+                      {ehAdminMembro ? 'Administrador do grupo' : 'Membro'}
                     </Text>
                   </View>
+                  {ehAdminMembro && (
+                    <View style={styles.adminPillSmall}>
+                      <Ionicons name="star" size={9} color={colors.primary} />
+                      <Text style={styles.adminTextSmall}>Admin</Text>
+                    </View>
+                  )}
                 </View>
               )
             })}
@@ -186,30 +226,45 @@ export default function GrupoDetalheScreen({ route, navigation }) {
         )}
       </ScrollView>
 
+      {/* Modal Compartilhar */}
       <Modal visible={modalCompartilhar} animationType="slide" transparent onRequestClose={() => setModalCompartilhar(false)}>
-        <View style={styles.overlay}>
+        <View style={styles.modalWrap}>
+          <PressableScale haptic={null} scale={1} style={StyleSheet.absoluteFill} onPress={() => setModalCompartilhar(false)} />
           <View style={styles.modal}>
+            <View style={styles.modalHandle} />
             <Text style={styles.modalTitulo}>Compartilhar tarefa</Text>
+            <Text style={styles.modalSub}>Escolha uma das suas tarefas pendentes:</Text>
+
             {tarefasNaoCompartilhadas.length === 0 ? (
-              <Text style={styles.semTarefas}>Todas as suas tarefas pendentes já estão neste grupo.</Text>
+              <View style={{ paddingVertical: spacing.xl }}>
+                <Text style={styles.semTarefas}>Todas as suas tarefas pendentes já estão neste grupo.</Text>
+              </View>
             ) : (
               <FlatList
                 data={tarefasNaoCompartilhadas}
                 keyExtractor={t => String(t.idTarefa)}
-                style={{ maxHeight: 400 }}
+                style={{ maxHeight: 360 }}
+                ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
                 renderItem={({ item: t }) => (
-                  <TouchableOpacity style={styles.itemSelecao} onPress={() => compartilhar(t.idTarefa)} disabled={salvando}>
-                    <Text style={styles.itemSelecaoText}>{t.titulo}</Text>
-                    <View style={[styles.prioBadge, { backgroundColor: PRIO_COR[t.prioridade] + '22' }]}>
-                      <Text style={[styles.prioText, { color: PRIO_COR[t.prioridade] }]}>{LABEL_PRIO[t.prioridade]}</Text>
+                  <PressableScale
+                    onPress={() => compartilhar(t.idTarefa)}
+                    haptic="medium"
+                    disabled={salvando}
+                    style={styles.itemSelecao}
+                  >
+                    <View style={[styles.statusDot, { backgroundColor: colors.warning }]} />
+                    <Text style={styles.itemTitulo} numberOfLines={1}>{t.titulo}</Text>
+                    <View style={[styles.prioPill, { backgroundColor: colors.prioSoft[t.prioridade] }]}>
+                      <Text style={[styles.prioPillText, { color: colors.prio[t.prioridade] }]}>{LABEL_PRIO[t.prioridade]}</Text>
                     </View>
-                  </TouchableOpacity>
+                  </PressableScale>
                 )}
               />
             )}
-            <TouchableOpacity style={styles.btnCancelar} onPress={() => setModalCompartilhar(false)}>
-              <Text style={styles.btnCancelarText}>Fechar</Text>
-            </TouchableOpacity>
+
+            <Button variant="secondary" onPress={() => setModalCompartilhar(false)} fullWidth style={{ marginTop: spacing.lg }}>
+              Fechar
+            </Button>
           </View>
         </View>
       </Modal>
@@ -217,53 +272,71 @@ export default function GrupoDetalheScreen({ route, navigation }) {
   )
 }
 
+function TabBtn({ label, count, ativa, onPress, icon }) {
+  return (
+    <PressableScale onPress={onPress} haptic="light" scale={0.96} style={[styles.aba, ativa && styles.abaAtiva]}>
+      <Ionicons name={icon} size={15} color={ativa ? colors.primary : colors.textMuted} />
+      <Text style={[styles.abaText, ativa && styles.abaTextAtiva]}>{label}</Text>
+      <View style={[styles.abaCount, ativa && styles.abaCountAtiva]}>
+        <Text style={[styles.abaCountText, ativa && styles.abaCountTextAtiva]}>{count}</Text>
+      </View>
+    </PressableScale>
+  )
+}
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0F172A' },
-  headerNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },
-  btnVoltar: { paddingVertical: 4 },
-  btnVoltarText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
-  adminPill: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, backgroundColor: '#1D4ED822' },
-  adminPillText: { color: '#3B82F6', fontSize: 11, fontWeight: '700' },
-  body: { paddingHorizontal: 20, paddingBottom: 16 },
-  grupoTop: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 },
-  avatar: { width: 56, height: 56, borderRadius: 14, backgroundColor: '#3B82F6', alignItems: 'center', justifyContent: 'center' },
-  avatarLetra: { fontSize: 24, fontWeight: '800', color: '#fff' },
-  titulo: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 2 },
-  descricao: { fontSize: 13, color: '#94A3B8' },
-  codigoBox: { backgroundColor: '#1E293B', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#334155', marginBottom: 12 },
-  codigoLabel: { fontSize: 11, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '600', marginBottom: 4 },
-  codigoValor: { fontSize: 15, fontWeight: '700', color: '#3B82F6', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
-  btnCompartilhar: { backgroundColor: '#3B82F6', borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
-  btnCompartilharText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  abas: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#334155', paddingHorizontal: 20 },
-  aba: { paddingVertical: 12, paddingHorizontal: 14, borderBottomWidth: 2, borderBottomColor: 'transparent', marginBottom: -1 },
-  abaAtiva: { borderBottomColor: '#3B82F6' },
-  abaText: { fontSize: 13, color: '#64748B', fontWeight: '500' },
-  abaTextAtiva: { color: '#3B82F6', fontWeight: '700' },
-  lista: { padding: 20, gap: 10 },
-  vazio: { textAlign: 'center', color: '#64748B', fontSize: 13, paddingVertical: 30 },
-  cardTarefa: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#1E293B', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#334155' },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  tarefaTitulo: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  tarefaPrazo: { fontSize: 11, color: '#64748B', marginTop: 2 },
-  riscado: { textDecorationLine: 'line-through', color: '#475569' },
-  prioBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  prioText: { fontSize: 10, fontWeight: '700' },
-  btnRemover: { color: '#EF4444', fontSize: 14, paddingHorizontal: 6 },
-  cardMembro: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#1E293B', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#334155' },
-  membroAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#1D4ED822', alignItems: 'center', justifyContent: 'center' },
-  membroAvatarText: { fontSize: 14, fontWeight: '700', color: '#3B82F6' },
-  membroNome: { flex: 1, fontSize: 14, color: '#fff', fontWeight: '500' },
-  papel: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8, backgroundColor: '#334155' },
-  papelText: { fontSize: 10, fontWeight: '700', color: '#94A3B8' },
-  papelAdmin: { backgroundColor: '#1D4ED822' },
-  papelAdminText: { color: '#3B82F6' },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: '#1E293B', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, borderTopWidth: 1, borderColor: '#334155' },
-  modalTitulo: { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 16 },
-  semTarefas: { fontSize: 13, color: '#64748B', textAlign: 'center', paddingVertical: 20 },
-  itemSelecao: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#0F172A', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#334155' },
-  itemSelecaoText: { fontSize: 14, color: '#fff', flex: 1, marginRight: 8 },
-  btnCancelar: { backgroundColor: '#0F172A', borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#334155', marginTop: 12 },
-  btnCancelarText: { color: '#94A3B8', fontWeight: '600', fontSize: 15 },
+  safe: { flex: 1, backgroundColor: colors.bg },
+
+  topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  topTitulo: { ...typography.h3, color: colors.text },
+  iconBtn: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+
+  body: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
+  heroRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
+  titulo: { ...typography.h1, color: colors.text },
+  descricao: { ...typography.body, color: colors.textMuted, marginTop: 2 },
+  adminPill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.primarySoft, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
+  adminText: { fontSize: 10, fontWeight: '800', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.4 },
+
+  codigoCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  codigoIcone: { width: 38, height: 38, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  codigoLabel: { ...typography.label, color: colors.textMuted },
+  codigoValor: { fontSize: 16, fontWeight: '800', color: colors.primary, letterSpacing: 1, marginTop: 2 },
+
+  abas: { flexDirection: 'row', paddingHorizontal: spacing.xl, gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.sm },
+  aba: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 9, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  abaAtiva: { backgroundColor: colors.primarySoft, borderColor: 'rgba(107, 138, 255, 0.3)' },
+  abaText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+  abaTextAtiva: { color: colors.primary },
+  abaCount: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.pill, backgroundColor: colors.bg, minWidth: 18, alignItems: 'center' },
+  abaCountAtiva: { backgroundColor: colors.primary },
+  abaCountText: { fontSize: 10, fontWeight: '800', color: colors.textMuted },
+  abaCountTextAtiva: { color: '#fff' },
+
+  lista: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
+
+  tarefaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  statusDot: { width: 10, height: 10, borderRadius: 5 },
+  tarefaTitulo: { ...typography.body, fontWeight: '600', color: colors.text },
+  riscado: { textDecorationLine: 'line-through', color: colors.textDim },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 6 },
+  prioPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
+  prioPillText: { fontSize: 10, fontWeight: '700' },
+  prazoText: { fontSize: 11, fontWeight: '600' },
+  removerBtn: { width: 30, height: 30, borderRadius: radius.sm, backgroundColor: colors.dangerSoft, alignItems: 'center', justifyContent: 'center' },
+
+  membroCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border, marginBottom: spacing.sm },
+  membroNome: { ...typography.body, fontWeight: '600', color: colors.text },
+  membroPapel: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+  adminPillSmall: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.primarySoft, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
+  adminTextSmall: { fontSize: 9, fontWeight: '800', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.4 },
+
+  modalWrap: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  modal: { backgroundColor: colors.bgElevated, borderTopLeftRadius: radius.xxl, borderTopRightRadius: radius.xxl, padding: spacing.xxl, paddingTop: spacing.md, borderTopWidth: 1, borderColor: colors.border },
+  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong, alignSelf: 'center', marginBottom: spacing.lg },
+  modalTitulo: { ...typography.h2, color: colors.text },
+  modalSub: { ...typography.body, color: colors.textMuted, marginBottom: spacing.lg },
+  semTarefas: { textAlign: 'center', color: colors.textMuted, fontSize: 13 },
+  itemSelecao: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  itemTitulo: { flex: 1, fontSize: 14, color: colors.text, fontWeight: '500' },
 })

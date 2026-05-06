@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Linking,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Linking,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import PressableScale from '../components/Pressable'
+import Card from '../components/Card'
+import Button from '../components/Button'
+import { colors, spacing, radius, typography } from '../theme'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
-const PRIO_COR = { alta: '#EF4444', media: '#F59E0B', baixa: '#10B981' }
 
 function formatarData(iso) {
   if (!iso) return '—'
@@ -16,6 +21,18 @@ function formatarData(iso) {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
+}
+
+function formatarHora(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const agora = new Date()
+  const diffMin = Math.floor((agora - d) / 60000)
+  if (diffMin < 1) return 'agora'
+  if (diffMin < 60) return `${diffMin}min`
+  const diffH = Math.floor(diffMin / 60)
+  if (diffH < 24) return `${diffH}h`
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
 export default function TarefaDetalheScreen({ route, navigation }) {
@@ -47,13 +64,14 @@ export default function TarefaDetalheScreen({ route, navigation }) {
   }, [tarefa.idTarefa])
 
   async function toggleStatus() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {})
     const endpoint = tarefa.status === 'concluida' ? 'reabrir' : 'concluir'
     const { data } = await api.put(`/api/tarefas/${tarefa.idTarefa}/${endpoint}`)
     setTarefa(data)
   }
 
-  async function excluir() {
-    Alert.alert('Excluir tarefa?', 'Essa ação é irreversível.', [
+  function excluir() {
+    Alert.alert('Excluir tarefa?', 'Esta ação é permanente.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Excluir', style: 'destructive', onPress: async () => {
         await api.delete(`/api/tarefas/${tarefa.idTarefa}`)
@@ -67,15 +85,13 @@ export default function TarefaDetalheScreen({ route, navigation }) {
     setEnviando(true)
     try {
       const { data } = await api.post('/api/comentarios', {
-        idTarefa: tarefa.idTarefa,
-        idUsuario: usuario.idUsuario,
-        conteudo: novoComentario.trim(),
+        idTarefa: tarefa.idTarefa, idUsuario: usuario.idUsuario, conteudo: novoComentario.trim(),
       })
       setComentarios(prev => [...prev, data])
       setNovoComentario('')
-    } catch {
-      Alert.alert('Erro', 'Não foi possível enviar o comentário.')
-    } finally { setEnviando(false) }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+    } catch { Alert.alert('Erro', 'Não foi possível enviar.') }
+    finally { setEnviando(false) }
   }
 
   async function deletarComentario(id) {
@@ -91,17 +107,14 @@ export default function TarefaDetalheScreen({ route, navigation }) {
     setEnviando(true)
     try {
       const { data } = await api.post('/api/anexos', {
-        idTarefa: tarefa.idTarefa,
-        idUsuario: usuario.idUsuario,
-        nomeArquivo: novoAnexoNome.trim(),
-        url: novoAnexoUrl.trim(),
+        idTarefa: tarefa.idTarefa, idUsuario: usuario.idUsuario,
+        nomeArquivo: novoAnexoNome.trim(), url: novoAnexoUrl.trim(),
       })
       setAnexos(prev => [...prev, data])
-      setNovoAnexoNome('')
-      setNovoAnexoUrl('')
-    } catch {
-      Alert.alert('Erro', 'Não foi possível adicionar o anexo.')
-    } finally { setEnviando(false) }
+      setNovoAnexoNome(''); setNovoAnexoUrl('')
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+    } catch { Alert.alert('Erro', 'Não foi possível adicionar.') }
+    finally { setEnviando(false) }
   }
 
   async function deletarAnexo(id) {
@@ -109,111 +122,115 @@ export default function TarefaDetalheScreen({ route, navigation }) {
     setAnexos(prev => prev.filter(a => a.idAnexo !== id))
   }
 
+  const concluida = tarefa.status === 'concluida'
+
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.btnVoltar}>
-            <Text style={styles.btnVoltarText}>← Voltar</Text>
-          </TouchableOpacity>
-          <View style={[styles.statusBadge, { backgroundColor: tarefa.status === 'concluida' ? '#10B98122' : '#F59E0B22' }]}>
-            <Text style={[styles.statusText, { color: tarefa.status === 'concluida' ? '#10B981' : '#F59E0B' }]}>
-              {tarefa.status === 'concluida' ? 'Concluída' : 'Pendente'}
-            </Text>
-          </View>
+        {/* Top bar */}
+        <View style={styles.topbar}>
+          <PressableScale onPress={() => navigation.goBack()} haptic="light" style={styles.iconBtn}>
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
+          </PressableScale>
+          <Text style={styles.topTitulo}>Detalhes</Text>
+          <PressableScale onPress={excluir} haptic="medium" style={styles.iconBtn}>
+            <Ionicons name="trash-outline" size={20} color={colors.danger} />
+          </PressableScale>
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+          {/* Hero */}
           <View style={styles.body}>
-            <Text style={[styles.titulo, tarefa.status === 'concluida' && styles.riscado]}>{tarefa.titulo}</Text>
+            <View style={styles.statusRow}>
+              <View style={[styles.statusBadge, { backgroundColor: concluida ? colors.successSoft : colors.warningSoft }]}>
+                <View style={[styles.statusDot, { backgroundColor: concluida ? colors.success : colors.warning }]} />
+                <Text style={[styles.statusText, { color: concluida ? colors.success : colors.warning }]}>
+                  {concluida ? 'Concluída' : 'Pendente'}
+                </Text>
+              </View>
+              <View style={[styles.prioPill, { backgroundColor: colors.prioSoft[tarefa.prioridade] }]}>
+                <View style={[styles.prioDot, { backgroundColor: colors.prio[tarefa.prioridade] }]} />
+                <Text style={[styles.prioPillText, { color: colors.prio[tarefa.prioridade] }]}>
+                  {LABEL_PRIO[tarefa.prioridade]}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={[styles.titulo, concluida && styles.riscado]}>{tarefa.titulo}</Text>
             {tarefa.descricao ? <Text style={styles.descricao}>{tarefa.descricao}</Text> : null}
 
-            <View style={styles.metaBox}>
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Prioridade</Text>
-                <View style={[styles.prioBadge, { backgroundColor: PRIO_COR[tarefa.prioridade] + '22' }]}>
-                  <Text style={[styles.prioText, { color: PRIO_COR[tarefa.prioridade] }]}>{LABEL_PRIO[tarefa.prioridade]}</Text>
-                </View>
-              </View>
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Prazo</Text>
-                <Text style={styles.metaValor}>{tarefa.prazo ? formatarData(tarefa.prazo) : '—'}</Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Criada em</Text>
-                <Text style={styles.metaValor}>{formatarData(tarefa.criadoEm)}</Text>
-              </View>
-              {tarefa.concluidoEm && (
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Concluída em</Text>
-                  <Text style={styles.metaValor}>{formatarData(tarefa.concluidoEm)}</Text>
-                </View>
-              )}
-            </View>
+            <Card style={{ marginTop: spacing.lg, marginBottom: spacing.md }}>
+              <MetaItem icon="calendar-outline" label="Prazo" valor={tarefa.prazo ? formatarData(tarefa.prazo) : 'Sem prazo'} />
+              <MetaSep />
+              <MetaItem icon="add-circle-outline" label="Criada" valor={formatarData(tarefa.criadoEm)} />
+              {tarefa.concluidoEm && (<>
+                <MetaSep />
+                <MetaItem icon="checkmark-circle-outline" label="Concluída" valor={formatarData(tarefa.concluidoEm)} />
+              </>)}
+            </Card>
 
-            <View style={styles.acoesBtns}>
-              <TouchableOpacity style={styles.btnAcao} onPress={toggleStatus}>
-                <Text style={styles.btnAcaoText}>
-                  {tarefa.status === 'concluida' ? '↻ Reabrir' : '✓ Concluir'}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.btnAcao, styles.btnExcluir]} onPress={excluir}>
-                <Text style={[styles.btnAcaoText, { color: '#EF4444' }]}>🗑️ Excluir</Text>
-              </TouchableOpacity>
-            </View>
+            <Button
+              variant={concluida ? 'secondary' : 'primary'}
+              icon={concluida ? 'refresh' : 'checkmark'}
+              onPress={toggleStatus}
+              fullWidth
+            >
+              {concluida ? 'Reabrir tarefa' : 'Marcar como concluída'}
+            </Button>
           </View>
 
+          {/* Tabs */}
           <View style={styles.abas}>
-            <TouchableOpacity
-              style={[styles.aba, aba === 'comentarios' && styles.abaAtiva]}
-              onPress={() => setAba('comentarios')}
-            >
-              <Text style={[styles.abaText, aba === 'comentarios' && styles.abaTextAtiva]}>
-                💬 Comentários ({comentarios.length})
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.aba, aba === 'anexos' && styles.abaAtiva]}
-              onPress={() => setAba('anexos')}
-            >
-              <Text style={[styles.abaText, aba === 'anexos' && styles.abaTextAtiva]}>
-                📎 Anexos ({anexos.length})
-              </Text>
-            </TouchableOpacity>
+            <TabBtn label="Comentários" count={comentarios.length} ativa={aba === 'comentarios'} onPress={() => setAba('comentarios')} icon="chatbubble-outline" />
+            <TabBtn label="Anexos" count={anexos.length} ativa={aba === 'anexos'} onPress={() => setAba('anexos')} icon="attach-outline" />
           </View>
 
           {carregando ? (
-            <ActivityIndicator color="#3B82F6" style={{ marginTop: 24 }} />
+            <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xxl }} />
           ) : aba === 'comentarios' ? (
             <View style={styles.lista}>
               {comentarios.length === 0 ? (
-                <Text style={styles.vazio}>Nenhum comentário ainda.</Text>
+                <Text style={styles.vazio}>Seja o primeiro a comentar.</Text>
               ) : comentarios.map(c => (
-                <View key={c.idComentario} style={styles.comentario}>
+                <View key={c.idComentario} style={styles.comentarioCard}>
                   <View style={styles.comentarioTop}>
-                    <Text style={styles.autor}>{c.nomeUsuario}</Text>
-                    <Text style={styles.data}>{formatarData(c.criadoEm)}</Text>
+                    <View style={styles.avatarPequeno}>
+                      <Text style={styles.avatarPequenoText}>{c.nomeUsuario?.charAt(0).toUpperCase()}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.autor}>{c.nomeUsuario}</Text>
+                      <Text style={styles.hora}>{formatarHora(c.criadoEm)}</Text>
+                    </View>
                     {c.idUsuario === usuario.idUsuario && (
-                      <TouchableOpacity onPress={() => deletarComentario(c.idComentario)}>
-                        <Text style={styles.btnDel}>✕</Text>
-                      </TouchableOpacity>
+                      <PressableScale onPress={() => deletarComentario(c.idComentario)} haptic="light" hitSlop={10}>
+                        <Ionicons name="close" size={16} color={colors.textDim} />
+                      </PressableScale>
                     )}
                   </View>
                   <Text style={styles.comentarioTexto}>{c.conteudo}</Text>
                 </View>
               ))}
-              <View style={styles.formBox}>
+
+              <View style={styles.formCard}>
                 <TextInput
                   style={[styles.input, styles.textarea]}
                   placeholder="Escreva um comentário..."
-                  placeholderTextColor="#4B5563"
+                  placeholderTextColor={colors.textDim}
                   multiline
                   value={novoComentario}
                   onChangeText={setNovoComentario}
                 />
-                <TouchableOpacity style={styles.btnEnviar} onPress={enviarComentario} disabled={enviando || !novoComentario.trim()}>
-                  {enviando ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnEnviarText}>Comentar</Text>}
-                </TouchableOpacity>
+                <Button
+                  variant="primary"
+                  icon="send"
+                  onPress={enviarComentario}
+                  loading={enviando}
+                  disabled={!novoComentario.trim()}
+                  style={{ alignSelf: 'flex-end', marginTop: spacing.sm }}
+                  size="sm"
+                >
+                  Enviar
+                </Button>
               </View>
             </View>
           ) : (
@@ -221,37 +238,48 @@ export default function TarefaDetalheScreen({ route, navigation }) {
               {anexos.length === 0 ? (
                 <Text style={styles.vazio}>Nenhum anexo ainda.</Text>
               ) : anexos.map(a => (
-                <View key={a.idAnexo} style={styles.anexo}>
-                  <TouchableOpacity style={{ flex: 1 }} onPress={() => Linking.openURL(a.url)}>
-                    <Text style={styles.anexoNome}>📎 {a.nomeArquivo}</Text>
-                    <Text style={styles.anexoMeta}>por {a.nomeUsuario} · {formatarData(a.criadoEm)}</Text>
-                  </TouchableOpacity>
+                <PressableScale
+                  key={a.idAnexo}
+                  onPress={() => Linking.openURL(a.url)}
+                  haptic="light"
+                  style={styles.anexoCard}
+                >
+                  <View style={styles.anexoIcon}>
+                    <Ionicons name="document-attach" size={20} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.anexoNome} numberOfLines={1}>{a.nomeArquivo}</Text>
+                    <Text style={styles.anexoMeta}>por {a.nomeUsuario} · {formatarHora(a.criadoEm)}</Text>
+                  </View>
                   {a.idUsuario === usuario.idUsuario && (
-                    <TouchableOpacity onPress={() => deletarAnexo(a.idAnexo)}>
-                      <Text style={styles.btnDel}>✕</Text>
-                    </TouchableOpacity>
+                    <PressableScale onPress={() => deletarAnexo(a.idAnexo)} haptic="light" hitSlop={8}>
+                      <Ionicons name="close" size={16} color={colors.textDim} />
+                    </PressableScale>
                   )}
-                </View>
+                </PressableScale>
               ))}
-              <View style={styles.formBox}>
+
+              <View style={styles.formCard}>
+                <Text style={styles.fieldLabel}>Nome do arquivo</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Nome do arquivo"
-                  placeholderTextColor="#4B5563"
+                  placeholder="Ex: relatorio.pdf"
+                  placeholderTextColor={colors.textDim}
                   value={novoAnexoNome}
                   onChangeText={setNovoAnexoNome}
                 />
+                <Text style={styles.fieldLabel}>URL</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="URL (link do Drive, Dropbox...)"
-                  placeholderTextColor="#4B5563"
+                  placeholder="https://..."
+                  placeholderTextColor={colors.textDim}
                   autoCapitalize="none"
                   value={novoAnexoUrl}
                   onChangeText={setNovoAnexoUrl}
                 />
-                <TouchableOpacity style={styles.btnEnviar} onPress={adicionarAnexo} disabled={enviando}>
-                  {enviando ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnEnviarText}>Adicionar anexo</Text>}
-                </TouchableOpacity>
+                <Button variant="primary" icon="add" onPress={adicionarAnexo} loading={enviando} fullWidth>
+                  Adicionar anexo
+                </Button>
               </View>
             </View>
           )}
@@ -261,46 +289,85 @@ export default function TarefaDetalheScreen({ route, navigation }) {
   )
 }
 
+function MetaItem({ icon, label, valor }) {
+  return (
+    <View style={styles.metaItem}>
+      <Ionicons name={icon} size={16} color={colors.textMuted} />
+      <Text style={styles.metaLabel}>{label}</Text>
+      <Text style={styles.metaValor}>{valor}</Text>
+    </View>
+  )
+}
+
+function MetaSep() {
+  return <View style={styles.metaSep} />
+}
+
+function TabBtn({ label, count, ativa, onPress, icon }) {
+  return (
+    <PressableScale onPress={onPress} haptic="light" scale={0.96} style={[styles.aba, ativa && styles.abaAtiva]}>
+      <Ionicons name={icon} size={15} color={ativa ? colors.primary : colors.textMuted} />
+      <Text style={[styles.abaText, ativa && styles.abaTextAtiva]}>{label}</Text>
+      <View style={[styles.abaCount, ativa && styles.abaCountAtiva]}>
+        <Text style={[styles.abaCountText, ativa && styles.abaCountTextAtiva]}>{count}</Text>
+      </View>
+    </PressableScale>
+  )
+}
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0F172A' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },
-  btnVoltar: { paddingVertical: 4 },
-  btnVoltarText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
+  safe: { flex: 1, backgroundColor: colors.bg },
+
+  topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  topTitulo: { ...typography.h3, color: colors.text },
+  iconBtn: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+
+  body: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md, flexWrap: 'wrap' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusText: { fontSize: 11, fontWeight: '700' },
-  body: { paddingHorizontal: 20, paddingBottom: 16 },
-  titulo: { fontSize: 24, fontWeight: '800', color: '#fff', marginBottom: 8, lineHeight: 30 },
-  riscado: { textDecorationLine: 'line-through', color: '#64748B' },
-  descricao: { fontSize: 14, color: '#94A3B8', lineHeight: 20, marginBottom: 16 },
-  metaBox: { backgroundColor: '#1E293B', borderRadius: 12, padding: 14, gap: 10, borderWidth: 1, borderColor: '#334155' },
-  metaItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  metaLabel: { fontSize: 12, fontWeight: '600', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 },
-  metaValor: { fontSize: 13, color: '#fff', fontWeight: '500' },
-  prioBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
-  prioText: { fontSize: 11, fontWeight: '700' },
-  acoesBtns: { flexDirection: 'row', gap: 10, marginTop: 14 },
-  btnAcao: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155' },
-  btnExcluir: { backgroundColor: '#7F1D1D22', borderColor: '#7F1D1D' },
-  btnAcaoText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  abas: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#334155', marginTop: 12, paddingHorizontal: 20 },
-  aba: { paddingVertical: 12, paddingHorizontal: 14, borderBottomWidth: 2, borderBottomColor: 'transparent', marginBottom: -1 },
-  abaAtiva: { borderBottomColor: '#3B82F6' },
-  abaText: { fontSize: 13, color: '#64748B', fontWeight: '500' },
-  abaTextAtiva: { color: '#3B82F6', fontWeight: '700' },
-  lista: { padding: 20, gap: 10 },
-  vazio: { textAlign: 'center', color: '#64748B', fontSize: 13, paddingVertical: 20 },
-  comentario: { backgroundColor: '#1E293B', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#334155' },
-  comentarioTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  autor: { fontSize: 13, fontWeight: '700', color: '#fff' },
-  data: { fontSize: 11, color: '#64748B', flex: 1 },
-  btnDel: { color: '#64748B', fontSize: 13, paddingHorizontal: 6 },
-  comentarioTexto: { fontSize: 14, color: '#E2E8F0', lineHeight: 20 },
-  anexo: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1E293B', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#334155', gap: 10 },
-  anexoNome: { fontSize: 14, fontWeight: '600', color: '#3B82F6' },
-  anexoMeta: { fontSize: 11, color: '#64748B', marginTop: 2 },
-  formBox: { backgroundColor: '#1E293B', borderRadius: 12, padding: 14, gap: 10, borderWidth: 1, borderColor: '#334155', marginTop: 4 },
-  input: { backgroundColor: '#0F172A', borderRadius: 10, padding: 12, fontSize: 14, color: '#fff', borderWidth: 1, borderColor: '#334155' },
-  textarea: { minHeight: 70, textAlignVertical: 'top' },
-  btnEnviar: { backgroundColor: '#3B82F6', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
-  btnEnviarText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  prioPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill },
+  prioDot: { width: 6, height: 6, borderRadius: 3 },
+  prioPillText: { fontSize: 11, fontWeight: '700' },
+
+  titulo: { ...typography.display, color: colors.text, marginBottom: spacing.sm },
+  riscado: { textDecorationLine: 'line-through', color: colors.textMuted },
+  descricao: { ...typography.bodyLg, color: colors.textSecondary, lineHeight: 22 },
+
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 4 },
+  metaLabel: { ...typography.label, color: colors.textMuted, flex: 0, width: 80 },
+  metaValor: { ...typography.body, color: colors.text, flex: 1, fontWeight: '500' },
+  metaSep: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
+
+  abas: { flexDirection: 'row', paddingHorizontal: spacing.xl, gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.sm },
+  aba: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 9, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  abaAtiva: { backgroundColor: colors.primarySoft, borderColor: 'rgba(107, 138, 255, 0.3)' },
+  abaText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+  abaTextAtiva: { color: colors.primary },
+  abaCount: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.pill, backgroundColor: colors.bg, minWidth: 18, alignItems: 'center' },
+  abaCountAtiva: { backgroundColor: colors.primary },
+  abaCountText: { fontSize: 10, fontWeight: '800', color: colors.textMuted },
+  abaCountTextAtiva: { color: '#fff' },
+
+  lista: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, gap: spacing.sm },
+  vazio: { textAlign: 'center', color: colors.textMuted, paddingVertical: spacing.xl, fontSize: 13 },
+
+  comentarioCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  comentarioTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 6 },
+  avatarPequeno: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  avatarPequenoText: { color: '#fff', fontWeight: '800', fontSize: 12 },
+  autor: { ...typography.caption, fontWeight: '700', color: colors.text },
+  hora: { ...typography.micro, color: colors.textDim, marginTop: 1 },
+  comentarioTexto: { ...typography.body, color: colors.textSecondary, lineHeight: 20, paddingLeft: 36 },
+
+  anexoCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  anexoIcon: { width: 38, height: 38, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  anexoNome: { ...typography.body, fontWeight: '600', color: colors.primary },
+  anexoMeta: { ...typography.micro, color: colors.textDim, marginTop: 2 },
+
+  formCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border, marginTop: spacing.sm },
+  fieldLabel: { ...typography.label, color: colors.textMuted, marginBottom: 6, marginTop: 4 },
+  input: { backgroundColor: colors.bg, borderRadius: radius.md, padding: 12, fontSize: 14, color: colors.text, borderWidth: 1, borderColor: colors.border, marginBottom: spacing.sm },
+  textarea: { minHeight: 70, textAlignVertical: 'top', marginBottom: 0 },
 })

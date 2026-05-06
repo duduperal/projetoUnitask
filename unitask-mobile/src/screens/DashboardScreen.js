@@ -1,25 +1,37 @@
 import { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import PressableScale from '../components/Pressable'
+import Card from '../components/Card'
+import Section from '../components/Section'
+import Avatar from '../components/Avatar'
+import EmptyState from '../components/EmptyState'
+import { colors, spacing, radius, typography } from '../theme'
 
-const PRIO_COR = { alta: '#EF4444', media: '#F59E0B', baixa: '#10B981' }
+const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
 
-function diasRestantes(prazo) {
-  if (!prazo) return null
-  const diff = Math.ceil((new Date(prazo) - new Date()) / (1000 * 60 * 60 * 24))
-  if (diff < 0) return 'Vencida'
-  if (diff === 0) return 'Hoje'
-  return `${diff}d`
+function formatPrazo(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  const hoje = new Date()
+  const diff = Math.ceil((d - hoje) / (1000 * 60 * 60 * 24))
+  if (diff < 0) return { label: 'Vencida', cor: colors.danger }
+  if (diff === 0) return { label: 'Hoje', cor: colors.warning }
+  if (diff === 1) return { label: 'Amanhã', cor: colors.warning }
+  if (diff <= 7) return { label: `Em ${diff} dias`, cor: colors.textSecondary }
+  return { label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }), cor: colors.textMuted }
 }
 
 export default function DashboardScreen({ navigation }) {
-  const { usuario } = useAuth()
+  const { usuario, logout } = useAuth()
   const [tarefas, setTarefas] = useState([])
   const [grupos, setGrupos] = useState([])
   const [notifCount, setNotifCount] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
+  const [carregando, setCarregando] = useState(true)
 
   async function carregar() {
     try {
@@ -31,7 +43,7 @@ export default function DashboardScreen({ navigation }) {
       setTarefas(resT.data)
       setGrupos(resG.data)
       setNotifCount(resN.data.filter(n => !n.lido).length)
-    } catch {}
+    } catch {} finally { setCarregando(false) }
   }
 
   useEffect(() => { carregar() }, [])
@@ -45,138 +57,261 @@ export default function DashboardScreen({ navigation }) {
   const total = tarefas.length
   const pendentes = tarefas.filter(t => t.status === 'pendente').length
   const concluidas = tarefas.filter(t => t.status === 'concluida').length
+  const taxaConclusao = total > 0 ? Math.round((concluidas / total) * 100) : 0
 
   const urgentes = tarefas
     .filter(t => t.status === 'pendente' && t.prazo)
     .sort((a, b) => new Date(a.prazo) - new Date(b.prazo))
     .slice(0, 3)
 
-  const nome = usuario?.nome?.split(' ')[0]
+  const nome = usuario?.nome?.split(' ')[0] || 'Usuário'
   const hora = new Date().getHours()
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3B82F6" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+        showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.saudacao}>{saudacao}, {nome}! 👋</Text>
-            <Text style={styles.sub}>Você tem {pendentes} tarefas pendentes</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.saudacao}>{saudacao},</Text>
+            <Text style={styles.nome}>{nome} 👋</Text>
           </View>
-          <TouchableOpacity style={styles.notifBtn} onPress={() => navigation.navigate('Notificacoes')}>
-            <Text style={styles.notifIcon}>🔔</Text>
-            {notifCount > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{notifCount}</Text></View>}
-          </TouchableOpacity>
+          <PressableScale onPress={() => navigation.navigate('Notificacoes')} haptic="light" style={styles.notifBtn}>
+            <Ionicons name="notifications-outline" size={22} color={colors.text} />
+            {notifCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{notifCount > 9 ? '9+' : notifCount}</Text>
+              </View>
+            )}
+          </PressableScale>
+          <PressableScale onPress={logout} haptic="medium" style={[styles.notifBtn, { marginLeft: spacing.sm }]}>
+            <Ionicons name="log-out-outline" size={22} color={colors.textMuted} />
+          </PressableScale>
         </View>
 
-        {/* Stats */}
-        <View style={styles.stats}>
-          <View style={[styles.statCard, { borderTopColor: '#3B82F6' }]}>
-            <Text style={styles.statNum}>{total}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+        {/* Hero progress card */}
+        <Card padding="xl" style={styles.heroCard}>
+          <View style={styles.heroTop}>
+            <View>
+              <Text style={styles.heroLabel}>Progresso de hoje</Text>
+              <Text style={styles.heroNumero}>
+                {concluidas}<Text style={styles.heroTotal}> / {total}</Text>
+              </Text>
+              <Text style={styles.heroSub}>
+                {pendentes === 0 ? 'Tudo em dia! 🎉' : `${pendentes} ${pendentes === 1 ? 'tarefa pendente' : 'tarefas pendentes'}`}
+              </Text>
+            </View>
+            <View style={styles.heroPctWrap}>
+              <Text style={styles.heroPct}>{taxaConclusao}%</Text>
+            </View>
           </View>
-          <View style={[styles.statCard, { borderTopColor: '#F59E0B' }]}>
-            <Text style={[styles.statNum, { color: '#F59E0B' }]}>{pendentes}</Text>
-            <Text style={styles.statLabel}>Pendentes</Text>
+          {/* Progress bar */}
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${taxaConclusao}%` }]} />
           </View>
-          <View style={[styles.statCard, { borderTopColor: '#10B981' }]}>
-            <Text style={[styles.statNum, { color: '#10B981' }]}>{concluidas}</Text>
-            <Text style={styles.statLabel}>Concluídas</Text>
-          </View>
+        </Card>
+
+        {/* Mini stats */}
+        <View style={styles.statsRow}>
+          <MiniStat icon="time-outline" cor={colors.warning} valor={pendentes} label="Pendentes" />
+          <MiniStat icon="checkmark-done" cor={colors.success} valor={concluidas} label="Feitas" />
+          <MiniStat icon="people-outline" cor={colors.primary} valor={grupos.length} label="Grupos" />
         </View>
 
         {/* Tarefas urgentes */}
-        <View style={styles.secaoHeader}>
-          <Text style={styles.secaoTitulo}>Tarefas urgentes</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Tarefas')}>
-            <Text style={styles.verTodas}>Ver todas →</Text>
-          </TouchableOpacity>
-        </View>
-
-        {urgentes.length === 0 ? (
-          <View style={styles.card}>
-            <Text style={styles.vazio}>Nenhuma tarefa urgente 🎉</Text>
-          </View>
-        ) : urgentes.map(t => {
-          const dias = diasRestantes(t.prazo)
-          const cor = dias === 'Vencida' ? '#EF4444' : dias === 'Hoje' ? '#F59E0B' : '#94A3B8'
-          return (
-            <View key={t.idTarefa} style={styles.tarefaCard}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.tarefaTitulo}>{t.titulo}</Text>
-                <Text style={[styles.tarefaPrazo, { color: cor }]}>
-                  📅 {t.prazo ? new Date(t.prazo).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
-                </Text>
-              </View>
-              <View style={[styles.prioBadge, { backgroundColor: PRIO_COR[t.prioridade] + '22' }]}>
-                <Text style={[styles.prioText, { color: PRIO_COR[t.prioridade] }]}>{t.prioridade}</Text>
-              </View>
+        <Section
+          title="Próximas tarefas"
+          action={tarefas.length > 0 ? 'Ver todas' : null}
+          onAction={() => navigation.navigate('Tarefas')}
+        >
+          {urgentes.length === 0 ? (
+            <Card padding="xl" style={{ alignItems: 'center' }}>
+              <Ionicons name="sparkles-outline" size={28} color={colors.success} style={{ marginBottom: spacing.sm }} />
+              <Text style={styles.vazio}>Nenhuma tarefa urgente</Text>
+              <Text style={styles.vazioSub}>Aproveite para descansar 🌿</Text>
+            </Card>
+          ) : (
+            <View style={{ gap: spacing.sm }}>
+              {urgentes.map(t => {
+                const prazo = formatPrazo(t.prazo)
+                return (
+                  <Card
+                    key={t.idTarefa}
+                    padding="lg"
+                    onPress={() => navigation.navigate('TarefaDetalhe', { tarefa: t })}
+                  >
+                    <View style={styles.urgenteRow}>
+                      <View style={[styles.prioDot, { backgroundColor: colors.prio[t.prioridade] }]} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.urgenteTitulo} numberOfLines={1}>{t.titulo}</Text>
+                        {prazo && (
+                          <View style={styles.prazoRow}>
+                            <Ionicons name="calendar-outline" size={11} color={prazo.cor} />
+                            <Text style={[styles.prazoText, { color: prazo.cor }]}>{prazo.label}</Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={[styles.prioBadge, { backgroundColor: colors.prioSoft[t.prioridade] }]}>
+                        <Text style={[styles.prioBadgeText, { color: colors.prio[t.prioridade] }]}>
+                          {LABEL_PRIO[t.prioridade]}
+                        </Text>
+                      </View>
+                    </View>
+                  </Card>
+                )
+              })}
             </View>
-          )
-        })}
+          )}
+        </Section>
 
         {/* Meus grupos */}
-        <View style={styles.secaoHeader}>
-          <Text style={styles.secaoTitulo}>Meus grupos</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Grupos')}>
-            <Text style={styles.verTodas}>Ver todos →</Text>
-          </TouchableOpacity>
-        </View>
-
-        {grupos.length === 0 ? (
-          <View style={styles.card}>
-            <Text style={styles.vazio}>Você não participa de nenhum grupo ainda.</Text>
-          </View>
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gruposRow}>
-            {grupos.slice(0, 5).map(g => (
-              <View key={g.idGrupo} style={styles.grupoCard}>
-                <View style={[styles.grupoIcon, { backgroundColor: '#3B82F6' }]}>
-                  <Text style={styles.grupoLetra}>{g.nome[0].toUpperCase()}</Text>
-                </View>
-                <Text style={styles.grupoNome} numberOfLines={1}>{g.nome}</Text>
-                <Text style={styles.grupoMembros}>{g.idAdmin === usuario.idUsuario ? 'Admin' : 'Membro'}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        )}
+        <Section
+          title="Meus grupos"
+          action={grupos.length > 0 ? 'Ver todos' : null}
+          onAction={() => navigation.navigate('Grupos')}
+        >
+          {grupos.length === 0 ? (
+            <Card padding="xl" style={{ alignItems: 'center' }}>
+              <Ionicons name="people-outline" size={28} color={colors.textDim} style={{ marginBottom: spacing.sm }} />
+              <Text style={styles.vazio}>Sem grupos ainda</Text>
+              <Text style={styles.vazioSub}>Crie ou entre em um grupo para colaborar</Text>
+            </Card>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gruposRow}>
+              {grupos.slice(0, 6).map(g => (
+                <PressableScale
+                  key={g.idGrupo}
+                  onPress={() => navigation.navigate('GrupoDetalhe', { grupo: g })}
+                  haptic="light"
+                  style={styles.grupoChip}
+                >
+                  <Avatar nome={g.nome} size={44} square />
+                  <Text style={styles.grupoNome} numberOfLines={1}>{g.nome}</Text>
+                  <Text style={styles.grupoPapel}>
+                    {g.idAdmin === usuario.idUsuario ? '★ Admin' : 'Membro'}
+                  </Text>
+                </PressableScale>
+              ))}
+            </ScrollView>
+          )}
+        </Section>
       </ScrollView>
     </SafeAreaView>
   )
 }
 
+function MiniStat({ icon, cor, valor, label }) {
+  return (
+    <View style={styles.miniStat}>
+      <View style={[styles.miniIcon, { backgroundColor: cor + '22' }]}>
+        <Ionicons name={icon} size={16} color={cor} />
+      </View>
+      <Text style={styles.miniValor}>{valor}</Text>
+      <Text style={styles.miniLabel}>{label}</Text>
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0F172A' },
-  content: { padding: 20, paddingBottom: 40 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  saudacao: { fontSize: 22, fontWeight: '800', color: '#fff' },
-  sub: { fontSize: 13, color: '#64748B', marginTop: 2 },
-  notifBtn: { position: 'relative', padding: 4 },
-  notifIcon: { fontSize: 24 },
-  badge: { position: 'absolute', top: 0, right: 0, backgroundColor: '#EF4444', borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
-  stats: { flexDirection: 'row', gap: 12, marginBottom: 28 },
-  statCard: { flex: 1, backgroundColor: '#1E293B', borderRadius: 14, padding: 16, borderTopWidth: 3, alignItems: 'center' },
-  statNum: { fontSize: 28, fontWeight: '800', color: '#fff', marginBottom: 4 },
-  statLabel: { fontSize: 11, color: '#64748B', fontWeight: '600' },
-  secaoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  secaoTitulo: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  verTodas: { fontSize: 13, color: '#3B82F6', fontWeight: '600' },
-  card: { backgroundColor: '#1E293B', borderRadius: 14, padding: 20, marginBottom: 24 },
-  vazio: { fontSize: 14, color: '#64748B', textAlign: 'center' },
-  tarefaCard: { backgroundColor: '#1E293B', borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  tarefaTitulo: { fontSize: 14, fontWeight: '600', color: '#fff', marginBottom: 4 },
-  tarefaPrazo: { fontSize: 12 },
-  prioBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginLeft: 12 },
-  prioText: { fontSize: 11, fontWeight: '700' },
-  gruposRow: { gap: 12, paddingBottom: 4, marginBottom: 8 },
-  grupoCard: { backgroundColor: '#1E293B', borderRadius: 14, padding: 16, width: 120, alignItems: 'center' },
-  grupoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  grupoLetra: { fontSize: 20, fontWeight: '800', color: '#fff' },
-  grupoNome: { fontSize: 13, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 4 },
-  grupoMembros: { fontSize: 11, color: '#64748B' },
+  safe: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: spacing.xl, paddingBottom: spacing.huge },
+
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xl },
+  saudacao: { ...typography.body, color: colors.textMuted },
+  nome: { ...typography.h1, color: colors.text, marginTop: 2 },
+  notifBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: colors.danger,
+    borderRadius: radius.pill,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.bg,
+  },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+
+  heroCard: {
+    marginBottom: spacing.lg,
+    backgroundColor: colors.primarySoft,
+    borderColor: 'rgba(107, 138, 255, 0.3)',
+  },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.lg },
+  heroLabel: { ...typography.label, color: colors.primary },
+  heroNumero: { ...typography.display, color: colors.text, marginTop: 4 },
+  heroTotal: { color: colors.textMuted, fontSize: 18, fontWeight: '600' },
+  heroSub: { ...typography.body, color: colors.textSecondary, marginTop: 4 },
+  heroPctWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  heroPct: { fontSize: 17, fontWeight: '800', color: '#fff' },
+  progressTrack: { height: 6, backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: radius.pill, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: radius.pill },
+
+  statsRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.xl },
+  miniStat: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    alignItems: 'flex-start',
+  },
+  miniIcon: { width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
+  miniValor: { ...typography.h1, color: colors.text },
+  miniLabel: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+
+  urgenteRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  prioDot: { width: 10, height: 10, borderRadius: 5 },
+  urgenteTitulo: { ...typography.body, color: colors.text, fontWeight: '600' },
+  prazoRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  prazoText: { ...typography.caption, fontWeight: '600' },
+  prioBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },
+  prioBadgeText: { fontSize: 10, fontWeight: '700' },
+
+  vazio: { ...typography.bodyLg, color: colors.text, fontWeight: '600' },
+  vazioSub: { ...typography.caption, color: colors.textMuted, marginTop: 4, textAlign: 'center' },
+
+  gruposRow: { gap: spacing.md, paddingRight: spacing.md },
+  grupoChip: {
+    width: 110,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    alignItems: 'center',
+  },
+  grupoNome: { ...typography.caption, color: colors.text, fontWeight: '700', marginTop: spacing.sm, textAlign: 'center' },
+  grupoPapel: { ...typography.micro, color: colors.textMuted, marginTop: 2 },
 })

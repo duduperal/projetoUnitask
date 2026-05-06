@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Modal, TextInput, Alert, ActivityIndicator, RefreshControl,
+  View, Text, StyleSheet, FlatList, TextInput,
+  Modal, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import PressableScale from '../components/Pressable'
+import Card from '../components/Card'
+import Button from '../components/Button'
+import EmptyState from '../components/EmptyState'
+import Avatar from '../components/Avatar'
+import { colors, spacing, radius, typography } from '../theme'
 
 export default function GruposScreen({ navigation }) {
   const { usuario } = useAuth()
@@ -18,14 +26,13 @@ export default function GruposScreen({ navigation }) {
   const [descricao, setDescricao] = useState('')
   const [codigo, setCodigo] = useState('')
   const [salvando, setSalvando] = useState(false)
+  const [busca, setBusca] = useState('')
 
   async function carregar() {
     try {
       const { data } = await api.get(`/api/grupos/usuario/${usuario.idUsuario}`)
       setGrupos(data)
-    } finally {
-      setCarregando(false)
-    }
+    } finally { setCarregando(false) }
   }
 
   useEffect(() => { carregar() }, [])
@@ -42,14 +49,12 @@ export default function GruposScreen({ navigation }) {
     try {
       const { data } = await api.post('/api/grupos', { idAdmin: usuario.idUsuario, nome, descricao: descricao || null })
       setGrupos(prev => [data, ...prev])
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
       setModalCriar(false)
-      setNome('')
-      setDescricao('')
+      setNome(''); setDescricao('')
     } catch {
       Alert.alert('Erro', 'Não foi possível criar o grupo.')
-    } finally {
-      setSalvando(false)
-    }
+    } finally { setSalvando(false) }
   }
 
   async function entrarGrupo() {
@@ -58,172 +63,257 @@ export default function GruposScreen({ navigation }) {
     try {
       await api.post('/api/grupos/entrar', { idUsuario: usuario.idUsuario, codigoConvite: codigo })
       await carregar()
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
       setModalEntrar(false)
       setCodigo('')
     } catch {
       Alert.alert('Erro', 'Código inválido ou você já é membro.')
-    } finally {
-      setSalvando(false)
-    }
+    } finally { setSalvando(false) }
   }
 
   function copiarCodigo(cod) {
-    Alert.alert('Código de convite', `${cod}\n\nCompartilhe este código para convidar membros.`)
+    Haptics.selectionAsync().catch(() => {})
+    Alert.alert('Código de convite', `${cod}\n\nCompartilhe este código com seus colegas.`)
   }
 
+  const filtrados = grupos.filter(g => g.nome.toLowerCase().includes(busca.toLowerCase()))
+
   if (carregando) return (
-    <SafeAreaView style={styles.safe}>
-      <ActivityIndicator color="#3B82F6" style={{ marginTop: 40 }} />
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <ActivityIndicator color={colors.primary} style={{ marginTop: 60 }} />
     </SafeAreaView>
   )
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Header */}
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.titulo}>Meus Grupos</Text>
-          <Text style={styles.sub}>Colabore com colegas em grupos</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.titulo}>Grupos</Text>
+          <Text style={styles.sub}>{grupos.length} {grupos.length === 1 ? 'grupo' : 'grupos'}</Text>
         </View>
       </View>
 
       {/* Ações */}
       <View style={styles.acoesRow}>
-        <TouchableOpacity style={styles.btnSecundario} onPress={() => setModalEntrar(true)}>
-          <Text style={styles.btnSecundarioText}>Entrar com código</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btnPrimario} onPress={() => setModalCriar(true)}>
-          <Text style={styles.btnPrimarioText}>+ Criar grupo</Text>
-        </TouchableOpacity>
+        <Button variant="secondary" icon="enter-outline" onPress={() => setModalEntrar(true)} style={{ flex: 1 }}>
+          Entrar
+        </Button>
+        <Button variant="primary" icon="add" onPress={() => setModalCriar(true)} style={{ flex: 1 }}>
+          Criar grupo
+        </Button>
       </View>
 
+      {grupos.length > 0 && (
+        <View style={styles.buscaWrap}>
+          <Ionicons name="search" size={16} color={colors.textMuted} style={{ marginRight: spacing.sm }} />
+          <TextInput
+            style={styles.buscaInput}
+            placeholder="Buscar grupo"
+            placeholderTextColor={colors.textDim}
+            value={busca}
+            onChangeText={setBusca}
+          />
+        </View>
+      )}
+
       <FlatList
-        data={grupos}
+        data={filtrados}
         keyExtractor={g => String(g.idGrupo)}
         contentContainerStyle={styles.lista}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3B82F6" />}
-        ListEmptyComponent={<Text style={styles.vazio}>Você não participa de nenhum grupo ainda.</Text>}
-        renderItem={({ item: g }) => (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.card}
-            onPress={() => navigation.navigate('GrupoDetalhe', { grupo: g })}
-          >
-            <View style={styles.cardHeader}>
-              <View style={styles.grupoIcone}>
-                <Text style={styles.grupoLetra}>{g.nome[0].toUpperCase()}</Text>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+        ListEmptyComponent={
+          <EmptyState
+            icon="people-outline"
+            title={busca ? 'Nada encontrado' : 'Sem grupos ainda'}
+            description={busca ? 'Tente outro nome.' : 'Crie ou entre em um grupo para colaborar.'}
+          />
+        }
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        renderItem={({ item: g }) => {
+          const ehAdmin = g.idAdmin === usuario.idUsuario
+          return (
+            <Card
+              padding="lg"
+              onPress={() => navigation.navigate('GrupoDetalhe', { grupo: g })}
+            >
+              <View style={styles.grupoTop}>
+                <Avatar nome={g.nome} size={48} square />
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.grupoNome} numberOfLines={1}>{g.nome}</Text>
+                    {ehAdmin && (
+                      <View style={styles.adminPill}>
+                        <Ionicons name="star" size={9} color={colors.primary} />
+                        <Text style={styles.adminText}>Admin</Text>
+                      </View>
+                    )}
+                  </View>
+                  {g.descricao ? (
+                    <Text style={styles.grupoDesc} numberOfLines={1}>{g.descricao}</Text>
+                  ) : (
+                    <Text style={styles.grupoDesc}>Toque para ver detalhes</Text>
+                  )}
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardNome}>{g.nome}</Text>
-                {g.descricao ? <Text style={styles.cardDesc} numberOfLines={1}>{g.descricao}</Text> : null}
-              </View>
-              <View style={[styles.papel, g.idAdmin === usuario.idUsuario && styles.papelAdmin]}>
-                <Text style={[styles.papelText, g.idAdmin === usuario.idUsuario && styles.papelAdminText]}>
-                  {g.idAdmin === usuario.idUsuario ? 'Admin' : 'Membro'}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.codigoRow} onPress={() => copiarCodigo(g.codigoConvite)}>
-              <Text style={styles.codigoLabel}>Código: </Text>
-              <Text style={styles.codigoValor}>{g.codigoConvite}</Text>
-              <Text style={{ fontSize: 14, marginLeft: 6 }}>📋</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+
+              <View style={styles.codigoSep} />
+
+              <PressableScale
+                onPress={(e) => { copiarCodigo(g.codigoConvite) }}
+                haptic="light"
+                scale={0.98}
+                style={styles.codigoRow}
+              >
+                <Ionicons name="key-outline" size={14} color={colors.textMuted} />
+                <Text style={styles.codigoLabel}>Código</Text>
+                <Text style={styles.codigoValor}>{g.codigoConvite}</Text>
+                <Ionicons name="copy-outline" size={14} color={colors.primary} />
+              </PressableScale>
+            </Card>
+          )
+        }}
       />
 
       {/* Modal Criar */}
       <Modal visible={modalCriar} animationType="slide" transparent onRequestClose={() => setModalCriar(false)}>
-        <View style={styles.overlay}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalWrap}>
+          <PressableScale haptic={null} scale={1} style={StyleSheet.absoluteFill} onPress={() => setModalCriar(false)} />
           <View style={styles.modal}>
+            <View style={styles.modalHandle} />
             <Text style={styles.modalTitulo}>Criar grupo</Text>
-            <Text style={styles.fieldLabel}>Nome *</Text>
+
+            <Text style={styles.fieldLabel}>Nome</Text>
             <TextInput
               style={styles.input}
-              placeholder="Nome do grupo"
-              placeholderTextColor="#4B5563"
+              placeholder="Ex: TCC Engenharia"
+              placeholderTextColor={colors.textDim}
               value={nome}
               onChangeText={setNome}
+              autoFocus
             />
+
             <Text style={styles.fieldLabel}>Descrição</Text>
             <TextInput
               style={[styles.input, styles.textarea]}
-              placeholder="Opcional..."
-              placeholderTextColor="#4B5563"
+              placeholder="Sobre o que é este grupo? (opcional)"
+              placeholderTextColor={colors.textDim}
               multiline
               value={descricao}
               onChangeText={setDescricao}
             />
-            <TouchableOpacity style={styles.btnCriar} onPress={criarGrupo} disabled={salvando}>
-              {salvando ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnCriarText}>Criar grupo</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.btnCancelar} onPress={() => setModalCriar(false)}>
-              <Text style={styles.btnCancelarText}>Cancelar</Text>
-            </TouchableOpacity>
+
+            <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.md }}>
+              <Button variant="secondary" onPress={() => setModalCriar(false)} style={{ flex: 1 }}>
+                Cancelar
+              </Button>
+              <Button variant="primary" onPress={criarGrupo} loading={salvando} style={{ flex: 1 }}>
+                Criar
+              </Button>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Modal Entrar */}
       <Modal visible={modalEntrar} animationType="slide" transparent onRequestClose={() => setModalEntrar(false)}>
-        <View style={styles.overlay}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalWrap}>
+          <PressableScale haptic={null} scale={1} style={StyleSheet.absoluteFill} onPress={() => setModalEntrar(false)} />
           <View style={styles.modal}>
+            <View style={styles.modalHandle} />
             <Text style={styles.modalTitulo}>Entrar em um grupo</Text>
+            <Text style={styles.modalSub}>Peça o código de convite para o admin do grupo.</Text>
+
             <Text style={styles.fieldLabel}>Código de convite</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Ex: ABC123"
-              placeholderTextColor="#4B5563"
-              autoCapitalize="none"
+              style={[styles.input, styles.codigoInput]}
+              placeholder="ABC123"
+              placeholderTextColor={colors.textDim}
+              autoCapitalize="characters"
               value={codigo}
-              onChangeText={setCodigo}
+              onChangeText={t => setCodigo(t.toUpperCase())}
+              autoFocus
             />
-            <TouchableOpacity style={styles.btnCriar} onPress={entrarGrupo} disabled={salvando}>
-              {salvando ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnCriarText}>Entrar</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.btnCancelar} onPress={() => setModalEntrar(false)}>
-              <Text style={styles.btnCancelarText}>Cancelar</Text>
-            </TouchableOpacity>
+
+            <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.md }}>
+              <Button variant="secondary" onPress={() => setModalEntrar(false)} style={{ flex: 1 }}>
+                Cancelar
+              </Button>
+              <Button variant="primary" onPress={entrarGrupo} loading={salvando} style={{ flex: 1 }}>
+                Entrar
+              </Button>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0F172A' },
-  header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 },
-  titulo: { fontSize: 22, fontWeight: '800', color: '#fff' },
-  sub: { fontSize: 13, color: '#64748B', marginTop: 2 },
-  acoesRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingVertical: 12 },
-  btnSecundario: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center', backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155' },
-  btnSecundarioText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
-  btnPrimario: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center', backgroundColor: '#3B82F6' },
-  btnPrimarioText: { fontSize: 13, fontWeight: '600', color: '#fff' },
-  lista: { paddingHorizontal: 20, paddingBottom: 40, gap: 12 },
-  vazio: { textAlign: 'center', color: '#64748B', marginTop: 40, fontSize: 14 },
-  card: { backgroundColor: '#1E293B', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#334155' },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-  grupoIcone: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#3B82F6', alignItems: 'center', justifyContent: 'center' },
-  grupoLetra: { fontSize: 20, fontWeight: '800', color: '#fff' },
-  cardNome: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 2 },
-  cardDesc: { fontSize: 12, color: '#64748B' },
-  papel: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: '#334155' },
-  papelText: { fontSize: 11, fontWeight: '700', color: '#94A3B8' },
-  papelAdmin: { backgroundColor: '#1D4ED822' },
-  papelAdminText: { color: '#3B82F6' },
-  codigoRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#334155' },
-  codigoLabel: { fontSize: 12, color: '#64748B' },
-  codigoValor: { fontSize: 13, fontWeight: '700', color: '#3B82F6' },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: '#1E293B', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 28, borderTopWidth: 1, borderColor: '#334155' },
-  modalTitulo: { fontSize: 20, fontWeight: '800', color: '#fff', marginBottom: 24 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#94A3B8', marginBottom: 8 },
-  input: { backgroundColor: '#0F172A', borderRadius: 12, padding: 14, fontSize: 14, color: '#fff', marginBottom: 16, borderWidth: 1, borderColor: '#334155' },
-  textarea: { height: 80, textAlignVertical: 'top' },
-  btnCriar: { backgroundColor: '#3B82F6', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 10 },
-  btnCriarText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  btnCancelar: { backgroundColor: '#0F172A', borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#334155' },
-  btnCancelarText: { color: '#94A3B8', fontWeight: '600', fontSize: 15 },
+  safe: { flex: 1, backgroundColor: colors.bg },
+
+  header: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.sm, flexDirection: 'row' },
+  titulo: { ...typography.h1, color: colors.text },
+  sub: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+
+  acoesRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
+
+  buscaWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  buscaInput: { flex: 1, color: colors.text, fontSize: 14 },
+
+  lista: { paddingHorizontal: spacing.xl, paddingBottom: 100 },
+
+  grupoTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  grupoNome: { ...typography.bodyLg, fontWeight: '700', color: colors.text, flex: 0 },
+  grupoDesc: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+  adminPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: colors.primarySoft,
+    paddingHorizontal: 7, paddingVertical: 2,
+    borderRadius: radius.pill,
+  },
+  adminText: { fontSize: 9, fontWeight: '800', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.4 },
+
+  codigoSep: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
+  codigoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  codigoLabel: { ...typography.caption, color: colors.textMuted },
+  codigoValor: {
+    flex: 1,
+    fontSize: 13, fontWeight: '700', color: colors.primary,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    letterSpacing: 1,
+  },
+
+  modalWrap: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  modal: {
+    backgroundColor: colors.bgElevated,
+    borderTopLeftRadius: radius.xxl, borderTopRightRadius: radius.xxl,
+    padding: spacing.xxl, paddingTop: spacing.md,
+    borderTopWidth: 1, borderColor: colors.border,
+  },
+  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong, alignSelf: 'center', marginBottom: spacing.lg },
+  modalTitulo: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
+  modalSub: { ...typography.body, color: colors.textMuted, marginBottom: spacing.lg },
+  fieldLabel: { ...typography.label, color: colors.textMuted, marginBottom: spacing.sm },
+  input: {
+    backgroundColor: colors.surface, borderRadius: radius.md, padding: 13, fontSize: 14, color: colors.text,
+    marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border,
+  },
+  textarea: { minHeight: 70, textAlignVertical: 'top' },
+  codigoInput: {
+    fontSize: 18, fontWeight: '700', textAlign: 'center', letterSpacing: 4,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
 })
