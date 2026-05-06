@@ -70,6 +70,20 @@ export default function GrupoDetalhe() {
     setTarefasGrupo(prev => prev.filter(t => t.idTarefa !== idTarefa))
   }
 
+  async function toggleStatus(t) {
+    try {
+      const endpoint = t.status === 'concluida' ? 'reabrir' : 'concluir'
+      const { data } = await api.put(`/api/tarefas/${t.idTarefa}/${endpoint}`)
+      setTarefasGrupo(prev => prev.map(x => x.idTarefa === t.idTarefa ? data : x))
+    } catch (e) {
+      if (e.response?.status === 403) {
+        alert('Apenas o admin do grupo pode alterar o status desta tarefa.')
+      } else {
+        alert('Erro ao alterar status da tarefa.')
+      }
+    }
+  }
+
   function copiarCodigo() {
     navigator.clipboard.writeText(grupo.codigoConvite)
     setCopiado(true)
@@ -149,7 +163,17 @@ export default function GrupoDetalhe() {
               {tarefasGrupo.map(t => (
                 <div key={t.idTarefa} className={`${styles.tarefaCard} ${t.status === 'concluida' ? styles.concluida : ''}`}>
                   <div className={styles.tarefaLeft}>
-                    <span className={`${styles.statusDot} ${t.status === 'concluida' ? styles.dotConcluida : styles.dotPendente}`} />
+                    {ehAdmin ? (
+                      <button
+                        className={`${styles.toggleStatus} ${t.status === 'concluida' ? styles.toggleConcluida : ''}`}
+                        onClick={() => toggleStatus(t)}
+                        title={t.status === 'concluida' ? 'Reabrir tarefa' : 'Marcar como concluída'}
+                      >
+                        {t.status === 'concluida' ? '✓' : ''}
+                      </button>
+                    ) : (
+                      <span className={`${styles.statusDot} ${t.status === 'concluida' ? styles.dotConcluida : styles.dotPendente}`} />
+                    )}
                     <div>
                       <span className={`${styles.tarefaTitulo} ${t.status === 'concluida' ? styles.riscado : ''}`}>
                         {t.titulo}
