@@ -150,6 +150,10 @@ public class GrupoController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Apenas o admin do grupo pode deletá-lo");
         }
+        if (grupoMembroRepository.existsByGrupoIdGrupoAndPapel(id, GrupoMembro.Papel.membro)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "O grupo ainda possui membros. Remova todos os membros antes de excluir o grupo.");
+        }
         grupoService.deletar(id);
         return ResponseEntity.noContent().build();
     }
