@@ -31,8 +31,16 @@ export function AuthProvider({ children }) {
     setUsuario(null)
   }
 
+  async function atualizarUsuario(novosDados) {
+    setUsuario(prev => {
+      const atualizado = { ...prev, ...novosDados }
+      AsyncStorage.setItem('usuario', JSON.stringify(atualizado)).catch(() => {})
+      return atualizado
+    })
+  }
+
   return (
-    <AuthContext.Provider value={{ usuario, carregando, login, logout }}>
+    <AuthContext.Provider value={{ usuario, carregando, login, logout, atualizarUsuario }}>
       {children}
     </AuthContext.Provider>
   )

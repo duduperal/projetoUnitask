@@ -40,4 +40,8 @@ public class UsuarioService {
     public void deletar(Integer id) {
         usuarioRepository.deleteById(id);
     }
+
+    public Usuario atualizar(Usuario usuario) {
+        return usuarioRepository.save(usuario);
+    }
 }

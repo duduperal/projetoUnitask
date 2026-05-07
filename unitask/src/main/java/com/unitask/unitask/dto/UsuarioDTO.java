@@ -17,5 +17,11 @@ public class UsuarioDTO {
         private String nome;
         private String email;
         private String criadoEm;
+        private String fotoPerfil;
+    }
+
+    @Data
+    public static class FotoRequest {
+        private String fotoPerfil;
     }
 }

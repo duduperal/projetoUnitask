@@ -22,6 +22,7 @@ export default function Login() {
         nome: response.data.nome,
         email: response.data.email,
         idUsuario: Number(response.data.idUsuario),
+        fotoPerfil: response.data.fotoPerfil || null,
       })
       navigate('/')
     } catch (error) {

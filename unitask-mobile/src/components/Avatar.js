@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, Image, StyleSheet } from 'react-native'
 import { colors, radius } from '../theme'
 
 const PALETTE = [
@@ -17,12 +17,25 @@ function hashNome(nome) {
 }
 
 /**
- * Avatar circular com gradiente determinístico baseado no nome.
- * Como não há expo-linear-gradient, simulamos com cor sólida + overlay sutil.
+ * Avatar circular. Mostra `foto` (data URL ou URL) se fornecida,
+ * senao a primeira letra do nome com cor deterministica.
  */
-export default function Avatar({ nome, size = 44, square = false }) {
+export default function Avatar({ nome, foto, size = 44, square = false }) {
   const cor = PALETTE[hashNome(nome || '?')][0]
   const inicial = (nome || '?').trim().charAt(0).toUpperCase()
+  const borderRadius = square ? radius.lg : size / 2
+
+  if (foto) {
+    return (
+      <Image
+        source={{ uri: foto }}
+        style={[
+          styles.base,
+          { width: size, height: size, borderRadius, backgroundColor: cor },
+        ]}
+      />
+    )
+  }
 
   return (
     <View
@@ -31,7 +44,7 @@ export default function Avatar({ nome, size = 44, square = false }) {
         {
           width: size,
           height: size,
-          borderRadius: square ? radius.lg : size / 2,
+          borderRadius,
           backgroundColor: cor,
         },
       ]}

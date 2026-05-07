@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { formatarNome } from '../utils/formatNome'
+import Avatar from './Avatar'
 import styles from './Sidebar.module.css'
 
 const navItems = [
@@ -52,9 +53,12 @@ export default function Sidebar({ open, onClose }) {
       <div className={styles.bottom}>
         <div className={styles.divider} />
         <div className={styles.user}>
-          <div className={styles.avatar}>
-            {usuario?.nome?.charAt(0).toUpperCase()}
-          </div>
+          <Avatar
+            nome={usuario?.nome}
+            foto={usuario?.fotoPerfil}
+            size={36}
+            className={styles.avatar}
+          />
           <div className={styles.userInfo}>
             <span className={styles.userName}>{formatarNome(usuario?.nome)}</span>
             <span className={styles.userEmail}>{usuario?.email}</span>

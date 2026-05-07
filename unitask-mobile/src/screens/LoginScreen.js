@@ -31,6 +31,7 @@ export default function LoginScreen({ navigation }) {
         nome: data.nome,
         email: data.email,
         idUsuario: Number(data.idUsuario),
+        fotoPerfil: data.fotoPerfil || null,
       })
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
     } catch {

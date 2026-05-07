@@ -30,18 +30,77 @@
   gap: 18px;
 }
 
-.avatar {
-  width: 56px;
-  height: 56px;
-  background: var(--primary);
+.avatarWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.btnCamera {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: 2px solid var(--card-bg);
+  font-size: 12px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 22px;
-  font-weight: 700;
-  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(75, 111, 229, 0.35);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.btnCamera:hover:not(:disabled) {
+  transform: scale(1.08);
+  background: #4060d4;
+}
+
+.btnCamera:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fotoAcoes {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.linkBtn:hover:not(:disabled) {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+.linkBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.linkDanger {
+  color: var(--danger);
+}
+
+.erroFoto {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--danger);
 }
 
 .nome {

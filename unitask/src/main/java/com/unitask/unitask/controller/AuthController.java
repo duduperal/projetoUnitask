@@ -21,7 +21,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request) {
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email ou senha inválidos"));
 
@@ -31,11 +31,12 @@ public class AuthController {
 
         String token = jwtUtil.gerarToken(usuario.getEmail());
 
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("email", usuario.getEmail());
         response.put("nome", usuario.getNome());
-        response.put("idUsuario", String.valueOf(usuario.getIdUsuario()));
+        response.put("idUsuario", usuario.getIdUsuario());
+        response.put("fotoPerfil", usuario.getFotoPerfil());
 
         return ResponseEntity.ok(response);
     }

@@ -1,18 +1,64 @@
 import { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, Alert, Linking, Switch } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, Alert, Linking, Switch, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
+import api from '../services/api'
 import PressableScale from '../components/Pressable'
 import Avatar from '../components/Avatar'
 import { formatarNome } from '../utils/formatNome'
+import { escolherEComprimirImagem } from '../utils/imagem'
 import { colors, spacing, radius, typography } from '../theme'
 
 export default function ConfiguracoesScreen({ navigation }) {
-  const { usuario, logout } = useAuth()
+  const { usuario, logout, atualizarUsuario } = useAuth()
   const [notifPush, setNotifPush] = useState(true)
   const [notifEmail, setNotifEmail] = useState(false)
+  const [enviandoFoto, setEnviandoFoto] = useState(false)
+
+  async function uploadFoto(fonte) {
+    setEnviandoFoto(true)
+    try {
+      const dataUrl = await escolherEComprimirImagem({ camera: fonte === 'camera' })
+      if (!dataUrl) return
+      const { data } = await api.put(`/api/usuarios/${usuario.idUsuario}/foto`, {
+        fotoPerfil: dataUrl,
+      })
+      await atualizarUsuario({ fotoPerfil: data.fotoPerfil })
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+    } catch (e) {
+      Alert.alert('Erro', e.message || 'Não foi possível atualizar a foto.')
+    } finally {
+      setEnviandoFoto(false)
+    }
+  }
+
+  async function removerFoto() {
+    setEnviandoFoto(true)
+    try {
+      await api.put(`/api/usuarios/${usuario.idUsuario}/foto`, { fotoPerfil: null })
+      await atualizarUsuario({ fotoPerfil: null })
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+    } catch {
+      Alert.alert('Erro', 'Não foi possível remover a foto.')
+    } finally {
+      setEnviandoFoto(false)
+    }
+  }
+
+  function abrirOpcoesFoto() {
+    if (enviandoFoto) return
+    const opcoes = [
+      { text: 'Tirar foto', onPress: () => uploadFoto('camera') },
+      { text: 'Escolher da galeria', onPress: () => uploadFoto('galeria') },
+    ]
+    if (usuario?.fotoPerfil) {
+      opcoes.push({ text: 'Remover foto', style: 'destructive', onPress: removerFoto })
+    }
+    opcoes.push({ text: 'Cancelar', style: 'cancel' })
+    Alert.alert('Foto de perfil', 'O que você quer fazer?', opcoes)
+  }
 
   function confirmarLogout() {
     Alert.alert('Sair da conta?', 'Você precisará fazer login novamente.', [
@@ -46,13 +92,27 @@ export default function ConfiguracoesScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {/* Perfil */}
-        <View style={styles.perfilCard}>
-          <Avatar nome={formatarNome(usuario?.nome)} size={64} />
+        <PressableScale onPress={abrirOpcoesFoto} haptic="light" scale={0.99} style={styles.perfilCard}>
+          <View style={styles.avatarWrap}>
+            <Avatar
+              nome={formatarNome(usuario?.nome)}
+              foto={usuario?.fotoPerfil}
+              size={64}
+            />
+            <View style={styles.cameraBadge}>
+              {enviandoFoto
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Ionicons name="camera" size={12} color="#fff" />}
+            </View>
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.perfilNome}>{formatarNome(usuario?.nome)}</Text>
             <Text style={styles.perfilEmail}>{usuario?.email}</Text>
+            <Text style={styles.perfilHint}>
+              {usuario?.fotoPerfil ? 'Toque para alterar a foto' : 'Toque para adicionar uma foto'}
+            </Text>
           </View>
-        </View>
+        </PressableScale>
 
         {/* Conta */}
         <SecaoTitulo>Conta</SecaoTitulo>
@@ -227,6 +287,22 @@ const styles = StyleSheet.create({
   },
   perfilNome: { ...typography.h3, color: colors.text },
   perfilEmail: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+  perfilHint: { ...typography.caption, color: colors.primary, marginTop: 6, fontSize: 11.5, fontWeight: '600' },
+
+  avatarWrap: { position: 'relative' },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
 
   secaoTitulo: {
     ...typography.label,

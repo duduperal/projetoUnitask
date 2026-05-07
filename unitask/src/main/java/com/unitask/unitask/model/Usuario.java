@@ -25,4 +25,11 @@ public class Usuario {
 
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
+
+    /**
+     * Foto de perfil em base64 (data URL completa, ex: "data:image/jpeg;base64,...").
+     * MEDIUMTEXT suporta ate ~16MB; o frontend comprime para ~200KB antes de enviar.
+     */
+    @Column(name = "foto_perfil", columnDefinition = "MEDIUMTEXT")
+    private String fotoPerfil;
 }
