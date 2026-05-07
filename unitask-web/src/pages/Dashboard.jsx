@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 import api from '../services/api'
+import { formatarNome } from '../utils/formatNome'
 import styles from './Dashboard.module.css'
 
 function formatarData(iso) {
@@ -44,7 +45,7 @@ export default function Dashboard() {
     <Layout>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.titulo}>Olá, {usuario?.nome?.split(' ')[0]} 👋</h1>
+          <h1 className={styles.titulo}>Olá, {formatarNome(usuario?.nome?.split(' ')[0])} 👋</h1>
           <p className={styles.subtitulo}>Aqui está o resumo das suas atividades</p>
         </div>
       </div>

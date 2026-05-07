@@ -13,6 +13,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import EmptyState from '../components/EmptyState'
+import { formatarNome } from '../utils/formatNome'
 import { colors, spacing, radius, typography } from '../theme'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
@@ -204,11 +205,12 @@ export default function GrupoDetalheScreen({ route, navigation }) {
               const [nome, papel] = m.split(' (')
               const papelLimpo = papel?.replace(')', '') || 'membro'
               const ehAdminMembro = papelLimpo === 'admin'
+              const nomeFmt = formatarNome(nome)
               return (
                 <View key={i} style={styles.membroCard}>
-                  <Avatar nome={nome} size={40} />
+                  <Avatar nome={nomeFmt} size={40} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.membroNome}>{nome}</Text>
+                    <Text style={styles.membroNome}>{nomeFmt}</Text>
                     <Text style={styles.membroPapel}>
                       {ehAdminMembro ? 'Administrador do grupo' : 'Membro'}
                     </Text>

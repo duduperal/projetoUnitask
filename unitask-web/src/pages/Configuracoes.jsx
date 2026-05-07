@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { formatarNome } from '../utils/formatNome'
 import styles from './Configuracoes.module.css'
 
 export default function Configuracoes() {
@@ -26,7 +27,7 @@ export default function Configuracoes() {
               {usuario?.nome?.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className={styles.nome}>{usuario?.nome}</h2>
+              <h2 className={styles.nome}>{formatarNome(usuario?.nome)}</h2>
               <p className={styles.email}>{usuario?.email}</p>
             </div>
           </div>
@@ -37,7 +38,7 @@ export default function Configuracoes() {
           <div className={styles.infoList}>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>Nome completo</span>
-              <span className={styles.infoValor}>{usuario?.nome}</span>
+              <span className={styles.infoValor}>{formatarNome(usuario?.nome)}</span>
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>E-mail</span>

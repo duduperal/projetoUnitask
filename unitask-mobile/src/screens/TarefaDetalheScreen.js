@@ -11,6 +11,7 @@ import api from '../services/api'
 import PressableScale from '../components/Pressable'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import { formatarNome } from '../utils/formatNome'
 import { colors, spacing, radius, typography } from '../theme'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
@@ -225,10 +226,10 @@ export default function TarefaDetalheScreen({ route, navigation }) {
                 <View key={c.idComentario} style={styles.comentarioCard}>
                   <View style={styles.comentarioTop}>
                     <View style={styles.avatarPequeno}>
-                      <Text style={styles.avatarPequenoText}>{c.nomeUsuario?.charAt(0).toUpperCase()}</Text>
+                      <Text style={styles.avatarPequenoText}>{formatarNome(c.nomeUsuario)?.charAt(0).toUpperCase()}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.autor}>{c.nomeUsuario}</Text>
+                      <Text style={styles.autor}>{formatarNome(c.nomeUsuario)}</Text>
                       <Text style={styles.hora}>{formatarHora(c.criadoEm)}</Text>
                     </View>
                     {c.idUsuario === usuario.idUsuario && (
@@ -279,7 +280,7 @@ export default function TarefaDetalheScreen({ route, navigation }) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.anexoNome} numberOfLines={1}>{a.nomeArquivo}</Text>
-                    <Text style={styles.anexoMeta}>por {a.nomeUsuario} · {formatarHora(a.criadoEm)}</Text>
+                    <Text style={styles.anexoMeta}>por {formatarNome(a.nomeUsuario)} · {formatarHora(a.criadoEm)}</Text>
                   </View>
                   {a.idUsuario === usuario.idUsuario && (
                     <PressableScale onPress={() => deletarAnexo(a.idAnexo)} haptic="light" hitSlop={8}>

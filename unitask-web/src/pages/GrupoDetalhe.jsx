@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 import api from '../services/api'
+import { formatarNome } from '../utils/formatNome'
 import styles from './GrupoDetalhe.module.css'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
@@ -204,10 +205,11 @@ export default function GrupoDetalhe() {
             {membros.map((m, i) => {
               const [nome, papel] = m.split(' (')
               const papelLimpo = papel?.replace(')', '') || 'membro'
+              const nomeFmt = formatarNome(nome)
               return (
                 <div key={i} className={styles.membroItem}>
-                  <div className={styles.membroAvatar}>{nome.charAt(0).toUpperCase()}</div>
-                  <span className={styles.membroNome}>{nome}</span>
+                  <div className={styles.membroAvatar}>{nomeFmt.charAt(0).toUpperCase()}</div>
+                  <span className={styles.membroNome}>{nomeFmt}</span>
                   <span className={`${styles.papelBadge} ${papelLimpo === 'admin' ? styles.papelAdmin : ''}`}>
                     {papelLimpo === 'admin' ? 'Admin' : 'Membro'}
                   </span>

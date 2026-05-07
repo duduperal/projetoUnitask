@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { formatarNome } from '../utils/formatNome'
 import styles from './TarefaPanel.module.css'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
@@ -197,7 +198,7 @@ export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete, podeA
                 ) : comentarios.map(c => (
                   <div key={c.idComentario} className={styles.comentario}>
                     <div className={styles.comentarioTop}>
-                      <span className={styles.autor}>{c.nomeUsuario}</span>
+                      <span className={styles.autor}>{formatarNome(c.nomeUsuario)}</span>
                       <span className={styles.data}>{formatarData(c.criadoEm)}</span>
                       {c.idUsuario === usuario.idUsuario && (
                         <button className={styles.btnDel} onClick={() => deletarComentario(c.idComentario)}>✕</button>
@@ -235,7 +236,7 @@ export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete, podeA
                         <a href={a.url} target="_blank" rel="noopener noreferrer" className={styles.anexoNome}>
                           {a.nomeArquivo}
                         </a>
-                        <span className={styles.anexoMeta}>por {a.nomeUsuario} · {formatarData(a.criadoEm)}</span>
+                        <span className={styles.anexoMeta}>por {formatarNome(a.nomeUsuario)} · {formatarData(a.criadoEm)}</span>
                       </div>
                     </div>
                     {a.idUsuario === usuario.idUsuario && (

@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
 import PressableScale from '../components/Pressable'
 import Avatar from '../components/Avatar'
+import { formatarNome } from '../utils/formatNome'
 import { colors, spacing, radius, typography } from '../theme'
 
 export default function ConfiguracoesScreen({ navigation }) {
@@ -46,9 +47,9 @@ export default function ConfiguracoesScreen({ navigation }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {/* Perfil */}
         <View style={styles.perfilCard}>
-          <Avatar nome={usuario?.nome} size={64} />
+          <Avatar nome={formatarNome(usuario?.nome)} size={64} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.perfilNome}>{usuario?.nome}</Text>
+            <Text style={styles.perfilNome}>{formatarNome(usuario?.nome)}</Text>
             <Text style={styles.perfilEmail}>{usuario?.email}</Text>
           </View>
         </View>

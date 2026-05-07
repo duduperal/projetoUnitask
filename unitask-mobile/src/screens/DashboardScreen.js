@@ -9,6 +9,7 @@ import Card from '../components/Card'
 import Section from '../components/Section'
 import Avatar from '../components/Avatar'
 import EmptyState from '../components/EmptyState'
+import { formatarNome } from '../utils/formatNome'
 import { colors, spacing, radius, typography } from '../theme'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
@@ -64,7 +65,7 @@ export default function DashboardScreen({ navigation }) {
     .sort((a, b) => new Date(a.prazo) - new Date(b.prazo))
     .slice(0, 3)
 
-  const nome = usuario?.nome?.split(' ')[0] || 'Usuário'
+  const nome = formatarNome(usuario?.nome?.split(' ')[0]) || 'Usuário'
   const hora = new Date().getHours()
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 
