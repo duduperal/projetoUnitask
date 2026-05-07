@@ -80,13 +80,16 @@ public class GrupoService {
 
     @Transactional
     public void deletar(Integer id) {
-        // Remove vinculos das tarefas com o grupo (sem deletar as tarefas)
-        tarefaGrupoRepository.findByGrupoIdGrupo(id)
-                .forEach(tarefaGrupoRepository::delete);
-        // Remove os membros do grupo
-        grupoMembroRepository.findByGrupoIdGrupo(id)
-                .forEach(grupoMembroRepository::delete);
-        // Por fim, deleta o grupo
+        // Remove vinculos das tarefas com o grupo (sem deletar as tarefas em si)
+        tarefaGrupoRepository.deleteAllByGrupoIdGrupo(id);
+        // Remove todos os membros do grupo
+        grupoMembroRepository.deleteAllByGrupoIdGrupo(id);
+        // Forca o flush antes de deletar o grupo, garantindo que os
+        // registros dependentes ja sairam da tabela quando o DELETE
+        // do grupo for executado (evita violacao de FK constraint)
+        grupoMembroRepository.flush();
+        tarefaGrupoRepository.flush();
+        // Finalmente, deleta o grupo
         grupoRepository.deleteById(id);
     }
 

@@ -69,9 +69,19 @@ export default function Grupos() {
   }
 
   async function excluirGrupo(id) {
-    await api.delete(`/api/grupos/${id}`)
-    setGrupos(prev => prev.filter(g => g.idGrupo !== id))
-    setConfirmandoExcluir(null)
+    try {
+      await api.delete(`/api/grupos/${id}`)
+      setGrupos(prev => prev.filter(g => g.idGrupo !== id))
+      setConfirmandoExcluir(null)
+    } catch (e) {
+      const status = e.response?.status
+      const msg = e.response?.data?.erro
+      if (status === 403) {
+        alert('Apenas o admin do grupo pode excluí-lo.')
+      } else {
+        alert(msg || 'Erro ao excluir o grupo. Tente novamente.')
+      }
+    }
   }
 
   function copiarCodigo(codigo, id) {
