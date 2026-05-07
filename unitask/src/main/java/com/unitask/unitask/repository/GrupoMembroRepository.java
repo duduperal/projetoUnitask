@@ -15,6 +15,8 @@ public interface GrupoMembroRepository extends JpaRepository<GrupoMembro, GrupoM
     Optional<GrupoMembro> findByUsuarioIdUsuarioAndGrupoIdGrupo(Integer idUsuario, Integer idGrupo);
     boolean existsByUsuarioIdUsuarioAndGrupoIdGrupo(Integer idUsuario, Integer idGrupo);
 
+    boolean existsByGrupoIdGrupoAndPapel(Integer idGrupo, GrupoMembro.Papel papel);
+
     @Modifying
     @Query("DELETE FROM GrupoMembro gm WHERE gm.grupo.idGrupo = :idGrupo")
     void deleteAllByGrupoIdGrupo(Integer idGrupo);
