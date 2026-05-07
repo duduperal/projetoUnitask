@@ -5,8 +5,10 @@ import com.unitask.unitask.model.GrupoMembro;
 import com.unitask.unitask.model.Usuario;
 import com.unitask.unitask.repository.GrupoMembroRepository;
 import com.unitask.unitask.repository.GrupoRepository;
+import com.unitask.unitask.repository.TarefaGrupoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,7 @@ public class GrupoService {
 
     private final GrupoRepository grupoRepository;
     private final GrupoMembroRepository grupoMembroRepository;
+    private final TarefaGrupoRepository tarefaGrupoRepository;
 
     public Grupo criar(Grupo grupo) {
         grupo.setCriadoEm(LocalDateTime.now());
@@ -75,7 +78,15 @@ public class GrupoService {
         return grupoMembroRepository.findByUsuarioIdUsuario(idUsuario);
     }
 
+    @Transactional
     public void deletar(Integer id) {
+        // Remove vinculos das tarefas com o grupo (sem deletar as tarefas)
+        tarefaGrupoRepository.findByGrupoIdGrupo(id)
+                .forEach(tarefaGrupoRepository::delete);
+        // Remove os membros do grupo
+        grupoMembroRepository.findByGrupoIdGrupo(id)
+                .forEach(grupoMembroRepository::delete);
+        // Por fim, deleta o grupo
         grupoRepository.deleteById(id);
     }
 

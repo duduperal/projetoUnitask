@@ -87,6 +87,33 @@ export default function GrupoDetalheScreen({ route, navigation }) {
     Alert.alert('Código de convite', `${grupo.codigoConvite}\n\nCompartilhe com seus colegas.`)
   }
 
+  function confirmarDeletar() {
+    Alert.alert(
+      'Excluir grupo?',
+      `O grupo "${grupo.nome}" será removido permanentemente. As tarefas dos membros não serão excluídas — apenas o vínculo com o grupo. Esta ação não pode ser desfeita.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir grupo',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/api/grupos/${grupo.idGrupo}`)
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+              navigation.goBack()
+            } catch (e) {
+              if (e.response?.status === 403) {
+                Alert.alert('Sem permissão', 'Apenas o admin pode excluir o grupo.')
+              } else {
+                Alert.alert('Erro', 'Não foi possível excluir o grupo.')
+              }
+            }
+          },
+        },
+      ]
+    )
+  }
+
   const tarefasNaoCompartilhadas = minhasTarefas.filter(
     t => !tarefasGrupo.some(tg => tg.idTarefa === t.idTarefa)
   )
@@ -105,7 +132,13 @@ export default function GrupoDetalheScreen({ route, navigation }) {
           <Ionicons name="chevron-back" size={22} color={colors.text} />
         </PressableScale>
         <Text style={styles.topTitulo}>Grupo</Text>
-        <View style={styles.iconBtn} />
+        {ehAdmin ? (
+          <PressableScale onPress={confirmarDeletar} haptic="medium" style={styles.iconBtn}>
+            <Ionicons name="trash-outline" size={20} color={colors.danger} />
+          </PressableScale>
+        ) : (
+          <View style={styles.iconBtn} />
+        )}
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
