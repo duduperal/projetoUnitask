@@ -327,6 +327,46 @@
 
 .papelAdmin { background: var(--primary-light); color: var(--primary); }
 
+.acoesMembro {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.btnAcao {
+  background: var(--light-gray);
+  border: 1px solid var(--border);
+  color: var(--dark);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.12s;
+}
+
+.btnAcao:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+
+.btnRemoverMembro {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--gray);
+  font-size: 12px;
+  font-weight: 700;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.12s;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnRemoverMembro:hover { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+
 /* Modal */
 .overlay {
   position: fixed;

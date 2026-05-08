@@ -71,6 +71,25 @@ export default function GrupoDetalhe() {
     setTarefasGrupo(prev => prev.filter(t => t.idTarefa !== idTarefa))
   }
 
+  async function removerMembro(idAlvo, nomeAlvo) {
+    if (!confirm(`Remover ${nomeAlvo} do grupo?`)) return
+    try {
+      await api.delete(`/api/grupos/${id}/membros/${idAlvo}`)
+      setMembros(prev => prev.filter(m => m.idUsuario !== idAlvo))
+    } catch (e) {
+      alert(e.response?.data?.message || 'Não foi possível remover o membro.')
+    }
+  }
+
+  async function alterarPapelMembro(idAlvo, novoPapel) {
+    try {
+      const { data } = await api.put(`/api/grupos/${id}/membros/${idAlvo}/papel`, { papel: novoPapel })
+      setMembros(prev => prev.map(m => m.idUsuario === idAlvo ? data : m))
+    } catch (e) {
+      alert(e.response?.data?.message || 'Não foi possível alterar o papel.')
+    }
+  }
+
   async function toggleStatus(t) {
     try {
       const endpoint = t.status === 'concluida' ? 'reabrir' : 'concluir'
@@ -103,7 +122,8 @@ export default function GrupoDetalhe() {
     </Layout>
   )
 
-  const ehAdmin = grupo.idAdmin === usuario.idUsuario
+  const meuMembro = membros.find(m => m.idUsuario === usuario.idUsuario)
+  const ehAdmin = meuMembro?.papel === 'admin' || grupo.idAdmin === usuario.idUsuario
   const tarefasNaoCompartilhadas = minhasTarefas.filter(
     t => !tarefasGrupo.some(tg => tg.idTarefa === t.idTarefa)
   )
@@ -202,17 +222,37 @@ export default function GrupoDetalhe() {
       {aba === 'membros' && (
         <div className={styles.content}>
           <div className={styles.membrosList}>
-            {membros.map((m, i) => {
-              const [nome, papel] = m.split(' (')
-              const papelLimpo = papel?.replace(')', '') || 'membro'
-              const nomeFmt = formatarNome(nome)
+            {membros.map(m => {
+              const nomeFmt = formatarNome(m.nome)
+              const ehAdminMembro = m.papel === 'admin'
+              const ehCriador = m.idUsuario === grupo.idAdmin
+              const ehProprio = m.idUsuario === usuario.idUsuario
+              const podeGerenciar = ehAdmin && !ehCriador && !ehProprio
               return (
-                <div key={i} className={styles.membroItem}>
+                <div key={m.idUsuario} className={styles.membroItem}>
                   <div className={styles.membroAvatar}>{nomeFmt.charAt(0).toUpperCase()}</div>
                   <span className={styles.membroNome}>{nomeFmt}</span>
-                  <span className={`${styles.papelBadge} ${papelLimpo === 'admin' ? styles.papelAdmin : ''}`}>
-                    {papelLimpo === 'admin' ? 'Admin' : 'Membro'}
+                  <span className={`${styles.papelBadge} ${ehAdminMembro ? styles.papelAdmin : ''}`}>
+                    {ehAdminMembro ? 'Admin' : 'Membro'}
                   </span>
+                  {podeGerenciar && (
+                    <div className={styles.acoesMembro}>
+                      <button
+                        className={styles.btnAcao}
+                        onClick={() => alterarPapelMembro(m.idUsuario, ehAdminMembro ? 'membro' : 'admin')}
+                        title={ehAdminMembro ? 'Remover permissão de admin' : 'Tornar admin'}
+                      >
+                        {ehAdminMembro ? '⬇ Rebaixar' : '⬆ Tornar admin'}
+                      </button>
+                      <button
+                        className={styles.btnRemoverMembro}
+                        onClick={() => removerMembro(m.idUsuario, nomeFmt)}
+                        title="Remover do grupo"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             })}

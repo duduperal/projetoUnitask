@@ -26,4 +26,17 @@ public class GrupoDTO {
         private String codigoConvite;
         private Integer idUsuario;
     }
+
+    @Data
+    public static class MembroResponse {
+        private Integer idUsuario;
+        private String nome;
+        private String papel;
+        private String fotoPerfil;
+    }
+
+    @Data
+    public static class AlterarPapelRequest {
+        private String papel;
+    }
 }

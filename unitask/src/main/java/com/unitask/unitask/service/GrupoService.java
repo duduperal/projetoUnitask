@@ -78,6 +78,64 @@ public class GrupoService {
         return grupoMembroRepository.findByUsuarioIdUsuario(idUsuario);
     }
 
+    public void removerMembro(Integer idGrupo, Integer idSolicitante, Integer idAlvo) {
+        Grupo grupo = grupoRepository.findById(idGrupo)
+                .orElseThrow(() -> new RuntimeException("Grupo não encontrado"));
+
+        GrupoMembro solicitante = grupoMembroRepository
+                .findByUsuarioIdUsuarioAndGrupoIdGrupo(idSolicitante, idGrupo)
+                .orElseThrow(() -> new RuntimeException("Você não pertence a este grupo"));
+
+        if (solicitante.getPapel() != GrupoMembro.Papel.admin) {
+            throw new RuntimeException("Apenas admins podem remover membros");
+        }
+
+        if (idAlvo.equals(grupo.getAdmin().getIdUsuario())) {
+            throw new RuntimeException("O criador do grupo não pode ser removido");
+        }
+
+        if (idAlvo.equals(idSolicitante)) {
+            throw new RuntimeException("Você não pode remover a si mesmo");
+        }
+
+        GrupoMembro alvo = grupoMembroRepository
+                .findByUsuarioIdUsuarioAndGrupoIdGrupo(idAlvo, idGrupo)
+                .orElseThrow(() -> new RuntimeException("Membro não encontrado no grupo"));
+
+        grupoMembroRepository.delete(alvo);
+    }
+
+    public GrupoMembro alterarPapel(Integer idGrupo, Integer idSolicitante, Integer idAlvo, String novoPapel) {
+        Grupo grupo = grupoRepository.findById(idGrupo)
+                .orElseThrow(() -> new RuntimeException("Grupo não encontrado"));
+
+        GrupoMembro solicitante = grupoMembroRepository
+                .findByUsuarioIdUsuarioAndGrupoIdGrupo(idSolicitante, idGrupo)
+                .orElseThrow(() -> new RuntimeException("Você não pertence a este grupo"));
+
+        if (solicitante.getPapel() != GrupoMembro.Papel.admin) {
+            throw new RuntimeException("Apenas admins podem alterar papéis");
+        }
+
+        GrupoMembro.Papel papel;
+        try {
+            papel = GrupoMembro.Papel.valueOf(novoPapel);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Papel inválido");
+        }
+
+        if (idAlvo.equals(grupo.getAdmin().getIdUsuario()) && papel != GrupoMembro.Papel.admin) {
+            throw new RuntimeException("O criador do grupo não pode ser rebaixado");
+        }
+
+        GrupoMembro alvo = grupoMembroRepository
+                .findByUsuarioIdUsuarioAndGrupoIdGrupo(idAlvo, idGrupo)
+                .orElseThrow(() -> new RuntimeException("Membro não encontrado no grupo"));
+
+        alvo.setPapel(papel);
+        return grupoMembroRepository.save(alvo);
+    }
+
     @Transactional
     public void deletar(Integer id) {
         // Remove vinculos das tarefas com o grupo (sem deletar as tarefas em si)

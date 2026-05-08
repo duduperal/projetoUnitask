@@ -41,7 +41,8 @@ export default function GrupoDetalheScreen({ route, navigation }) {
   const [modalCompartilhar, setModalCompartilhar] = useState(false)
   const [salvando, setSalvando] = useState(false)
 
-  const ehAdmin = grupo.idAdmin === usuario.idUsuario
+  const meuMembro = membros.find(m => m.idUsuario === usuario.idUsuario)
+  const ehAdmin = meuMembro?.papel === 'admin' || grupo.idAdmin === usuario.idUsuario
 
   async function carregar() {
     const [rg, rm, rt, rmt] = await Promise.all([
@@ -85,6 +86,55 @@ export default function GrupoDetalheScreen({ route, navigation }) {
   function copiarCodigo() {
     Haptics.selectionAsync().catch(() => {})
     Alert.alert('Código de convite', `${grupo.codigoConvite}\n\nCompartilhe com seus colegas.`)
+  }
+
+  function confirmarRemoverMembro(idAlvo, nomeAlvo) {
+    Alert.alert(
+      'Remover membro?',
+      `${nomeAlvo} será removido do grupo. As tarefas dele não serão excluídas.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/api/grupos/${grupo.idGrupo}/membros/${idAlvo}`)
+              setMembros(prev => prev.filter(m => m.idUsuario !== idAlvo))
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+            } catch (e) {
+              Alert.alert('Erro', e.response?.data?.message || 'Não foi possível remover o membro.')
+            }
+          },
+        },
+      ]
+    )
+  }
+
+  function confirmarAlterarPapel(idAlvo, nomeAlvo, papelAtual) {
+    const novoPapel = papelAtual === 'admin' ? 'membro' : 'admin'
+    const acao = novoPapel === 'admin' ? 'Tornar admin?' : 'Remover admin?'
+    const msg = novoPapel === 'admin'
+      ? `${nomeAlvo} terá permissões de administrador do grupo.`
+      : `${nomeAlvo} voltará a ser um membro comum.`
+    Alert.alert(acao, msg, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Confirmar',
+        onPress: async () => {
+          try {
+            const { data } = await api.put(
+              `/api/grupos/${grupo.idGrupo}/membros/${idAlvo}/papel`,
+              { papel: novoPapel }
+            )
+            setMembros(prev => prev.map(m => m.idUsuario === idAlvo ? data : m))
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+          } catch (e) {
+            Alert.alert('Erro', e.response?.data?.message || 'Não foi possível alterar o papel.')
+          }
+        },
+      },
+    ])
   }
 
   function confirmarDeletar() {
@@ -234,13 +284,14 @@ export default function GrupoDetalheScreen({ route, navigation }) {
           </View>
         ) : (
           <View style={styles.lista}>
-            {membros.map((m, i) => {
-              const [nome, papel] = m.split(' (')
-              const papelLimpo = papel?.replace(')', '') || 'membro'
-              const ehAdminMembro = papelLimpo === 'admin'
-              const nomeFmt = formatarNome(nome)
+            {membros.map(m => {
+              const ehAdminMembro = m.papel === 'admin'
+              const nomeFmt = formatarNome(m.nome)
+              const ehCriador = m.idUsuario === grupo.idAdmin
+              const ehProprio = m.idUsuario === usuario.idUsuario
+              const podeGerenciar = ehAdmin && !ehCriador && !ehProprio
               return (
-                <View key={i} style={styles.membroCard}>
+                <View key={m.idUsuario} style={styles.membroCard}>
                   <Avatar nome={nomeFmt} size={40} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.membroNome}>{nomeFmt}</Text>
@@ -252,6 +303,30 @@ export default function GrupoDetalheScreen({ route, navigation }) {
                     <View style={styles.adminPillSmall}>
                       <Ionicons name="star" size={9} color={colors.primary} />
                       <Text style={styles.adminTextSmall}>Admin</Text>
+                    </View>
+                  )}
+                  {podeGerenciar && (
+                    <View style={{ flexDirection: 'row', gap: 6, marginLeft: 6 }}>
+                      <PressableScale
+                        onPress={() => confirmarAlterarPapel(m.idUsuario, nomeFmt, m.papel)}
+                        haptic="light"
+                        hitSlop={8}
+                        style={styles.acaoBtn}
+                      >
+                        <Ionicons
+                          name={ehAdminMembro ? 'arrow-down' : 'arrow-up'}
+                          size={14}
+                          color={colors.primary}
+                        />
+                      </PressableScale>
+                      <PressableScale
+                        onPress={() => confirmarRemoverMembro(m.idUsuario, nomeFmt)}
+                        haptic="medium"
+                        hitSlop={8}
+                        style={styles.removerBtn}
+                      >
+                        <Ionicons name="close" size={16} color={colors.danger} />
+                      </PressableScale>
                     </View>
                   )}
                 </View>
@@ -361,6 +436,7 @@ const styles = StyleSheet.create({
   removerBtn: { width: 30, height: 30, borderRadius: radius.sm, backgroundColor: colors.dangerSoft, alignItems: 'center', justifyContent: 'center' },
 
   membroCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border, marginBottom: spacing.sm },
+  acaoBtn: { width: 30, height: 30, borderRadius: radius.sm, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
   membroNome: { ...typography.body, fontWeight: '600', color: colors.text },
   membroPapel: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
   adminPillSmall: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.primarySoft, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
