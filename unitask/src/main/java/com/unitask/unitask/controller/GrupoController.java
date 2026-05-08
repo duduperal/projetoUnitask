@@ -63,12 +63,62 @@ public class GrupoController {
     }
 
     @GetMapping("/{id}/membros")
-    public ResponseEntity<List<String>> listarMembros(@PathVariable Integer id) {
-        List<String> membros = grupoService.listarMembros(id)
+    public ResponseEntity<List<GrupoDTO.MembroResponse>> listarMembros(@PathVariable Integer id) {
+        List<GrupoDTO.MembroResponse> membros = grupoService.listarMembros(id)
                 .stream()
-                .map(m -> m.getUsuario().getNome() + " (" + m.getPapel() + ")")
+                .map(m -> {
+                    GrupoDTO.MembroResponse r = new GrupoDTO.MembroResponse();
+                    r.setIdUsuario(m.getUsuario().getIdUsuario());
+                    r.setNome(m.getUsuario().getNome());
+                    r.setPapel(m.getPapel().name());
+                    r.setFotoPerfil(m.getUsuario().getFotoPerfil());
+                    return r;
+                })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(membros);
+    }
+
+    @DeleteMapping("/{id}/membros/{idUsuario}")
+    public ResponseEntity<Void> removerMembro(@PathVariable Integer id,
+                                              @PathVariable Integer idUsuario,
+                                              @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Não autenticado");
+        }
+        try {
+            grupoService.removerMembro(id, usuario.getIdUsuario(), idUsuario);
+        } catch (RuntimeException e) {
+            HttpStatus status = e.getMessage() != null && e.getMessage().contains("Apenas admins")
+                    ? HttpStatus.FORBIDDEN
+                    : HttpStatus.BAD_REQUEST;
+            throw new ResponseStatusException(status, e.getMessage());
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/membros/{idUsuario}/papel")
+    public ResponseEntity<GrupoDTO.MembroResponse> alterarPapel(@PathVariable Integer id,
+                                                                @PathVariable Integer idUsuario,
+                                                                @RequestBody GrupoDTO.AlterarPapelRequest request,
+                                                                @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Não autenticado");
+        }
+        try {
+            GrupoMembro atualizado = grupoService.alterarPapel(
+                    id, usuario.getIdUsuario(), idUsuario, request.getPapel());
+            GrupoDTO.MembroResponse r = new GrupoDTO.MembroResponse();
+            r.setIdUsuario(atualizado.getUsuario().getIdUsuario());
+            r.setNome(atualizado.getUsuario().getNome());
+            r.setPapel(atualizado.getPapel().name());
+            r.setFotoPerfil(atualizado.getUsuario().getFotoPerfil());
+            return ResponseEntity.ok(r);
+        } catch (RuntimeException e) {
+            HttpStatus status = e.getMessage() != null && e.getMessage().contains("Apenas admins")
+                    ? HttpStatus.FORBIDDEN
+                    : HttpStatus.BAD_REQUEST;
+            throw new ResponseStatusException(status, e.getMessage());
+        }
     }
 
     @GetMapping("/usuario/{idUsuario}")
