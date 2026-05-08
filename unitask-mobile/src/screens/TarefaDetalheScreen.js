@@ -102,8 +102,12 @@ export default function TarefaDetalheScreen({ route, navigation }) {
     Alert.alert('Excluir tarefa?', 'Esta ação é permanente.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Excluir', style: 'destructive', onPress: async () => {
-        await api.delete(`/api/tarefas/${tarefa.idTarefa}`)
-        navigation.goBack()
+        try {
+          await api.delete(`/api/tarefas/${tarefa.idTarefa}`)
+          navigation.goBack()
+        } catch (e) {
+          Alert.alert('Erro', e.response?.data?.erro || 'Não foi possível excluir a tarefa.')
+        }
       }},
     ])
   }
@@ -123,8 +127,12 @@ export default function TarefaDetalheScreen({ route, navigation }) {
   }
 
   async function deletarComentario(id) {
-    await api.delete(`/api/comentarios/${id}`)
-    setComentarios(prev => prev.filter(c => c.idComentario !== id))
+    try {
+      await api.delete(`/api/comentarios/${id}`)
+      setComentarios(prev => prev.filter(c => c.idComentario !== id))
+    } catch (e) {
+      Alert.alert('Erro', e.response?.data?.erro || 'Não foi possível excluir o comentário.')
+    }
   }
 
   async function adicionarAnexo() {
@@ -146,8 +154,12 @@ export default function TarefaDetalheScreen({ route, navigation }) {
   }
 
   async function deletarAnexo(id) {
-    await api.delete(`/api/anexos/${id}`)
-    setAnexos(prev => prev.filter(a => a.idAnexo !== id))
+    try {
+      await api.delete(`/api/anexos/${id}`)
+      setAnexos(prev => prev.filter(a => a.idAnexo !== id))
+    } catch (e) {
+      Alert.alert('Erro', e.response?.data?.erro || 'Não foi possível excluir o anexo.')
+    }
   }
 
   const concluida = tarefa.status === 'concluida'

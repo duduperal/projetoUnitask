@@ -22,6 +22,7 @@ public class GrupoService {
     private final GrupoMembroRepository grupoMembroRepository;
     private final TarefaGrupoRepository tarefaGrupoRepository;
 
+    @Transactional
     public Grupo criar(Grupo grupo) {
         grupo.setCriadoEm(LocalDateTime.now());
         grupo.setCodigoConvite(gerarCodigoConvite());
@@ -49,6 +50,7 @@ public class GrupoService {
         return grupoRepository.findByCodigoConvite(codigo);
     }
 
+    @Transactional
     public void entrarNoGrupo(String codigoConvite, Usuario usuario) {
         Grupo grupo = grupoRepository.findByCodigoConvite(codigoConvite)
                 .orElseThrow(() -> new RuntimeException("Código de convite inválido"));

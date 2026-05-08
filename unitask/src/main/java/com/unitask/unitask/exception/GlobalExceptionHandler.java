@@ -1,5 +1,7 @@
 package com.unitask.unitask.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +12,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * ResponseStatusException carrega seu proprio HttpStatus — preservamos.
@@ -34,9 +38,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleException(Exception ex) {
-        ex.printStackTrace();
+        log.error("Erro interno nao tratado", ex);
         Map<String, Object> erro = new HashMap<>();
-        erro.put("erro", "Erro interno do servidor: " + ex.getMessage());
+        erro.put("erro", "Erro interno do servidor");
         erro.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         return ResponseEntity.internalServerError().body(erro);
     }

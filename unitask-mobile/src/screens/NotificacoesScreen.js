@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
@@ -42,7 +43,7 @@ export default function NotificacoesScreen() {
     } finally { setCarregando(false) }
   }
 
-  useEffect(() => { carregar() }, [])
+  useFocusEffect(useCallback(() => { carregar() }, []))
 
   async function onRefresh() {
     setRefreshing(true)
@@ -52,15 +53,26 @@ export default function NotificacoesScreen() {
 
   async function marcarLida(id) {
     Haptics.selectionAsync().catch(() => {})
-    await api.put(`/api/notificacoes/${id}/ler`)
-    setNotificacoes(prev => prev.map(n => n.idNotificacao === id ? { ...n, lido: true } : n))
+    try {
+      await api.put(`/api/notificacoes/${id}/ler`)
+      setNotificacoes(prev => prev.map(n => n.idNotificacao === id ? { ...n, lido: true } : n))
+    } catch (e) {
+      console.warn('Falha ao marcar como lida', e)
+    }
   }
 
   async function marcarTodasLidas() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
     const naoLidas = notificacoes.filter(n => !n.lido)
-    await Promise.all(naoLidas.map(n => api.put(`/api/notificacoes/${n.idNotificacao}/ler`)))
-    setNotificacoes(prev => prev.map(n => ({ ...n, lido: true })))
+    const resultados = await Promise.allSettled(
+      naoLidas.map(n => api.put(`/api/notificacoes/${n.idNotificacao}/ler`))
+    )
+    const idsOk = new Set(
+      resultados
+        .map((r, i) => r.status === 'fulfilled' ? naoLidas[i].idNotificacao : null)
+        .filter(Boolean)
+    )
+    setNotificacoes(prev => prev.map(n => idsOk.has(n.idNotificacao) ? { ...n, lido: true } : n))
   }
 
   const naoLidas = notificacoes.filter(n => !n.lido).length

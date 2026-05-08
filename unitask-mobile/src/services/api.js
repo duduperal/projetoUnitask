@@ -16,7 +16,8 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 403) {
+    const status = error.response?.status
+    if (status === 401 || status === 403) {
       await AsyncStorage.removeItem('token')
       await AsyncStorage.removeItem('usuario')
     }

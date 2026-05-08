@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TextInput,
   Modal, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
@@ -60,7 +61,7 @@ export default function TarefasScreen({ navigation }) {
     } finally { setCarregando(false) }
   }
 
-  useEffect(() => { carregar() }, [])
+  useFocusEffect(useCallback(() => { carregar() }, []))
 
   function podeAlterarStatus(t) {
     if (!t.idsGrupos || t.idsGrupos.length === 0) return true
@@ -127,8 +128,13 @@ export default function TarefasScreen({ navigation }) {
     Alert.alert('Excluir tarefa?', 'Esta ação é permanente.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Excluir', style: 'destructive', onPress: async () => {
-        await api.delete(`/api/tarefas/${id}`)
-        setTarefas(prev => prev.filter(t => t.idTarefa !== id))
+        try {
+          await api.delete(`/api/tarefas/${id}`)
+          setTarefas(prev => prev.filter(t => t.idTarefa !== id))
+        } catch (e) {
+          const msg = e.response?.data?.erro || 'Não foi possível excluir a tarefa.'
+          Alert.alert('Erro', msg)
+        }
       }},
     ])
   }

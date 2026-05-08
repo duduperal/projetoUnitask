@@ -26,7 +26,7 @@ export default function Grupos() {
       .finally(() => setCarregando(false))
   }
 
-  useEffect(() => { if (usuario?.idUsuario) carregar() }, [usuario])
+  useEffect(() => { if (usuario?.idUsuario) carregar() }, [usuario?.idUsuario])
 
   async function criarGrupo(e) {
     e.preventDefault()

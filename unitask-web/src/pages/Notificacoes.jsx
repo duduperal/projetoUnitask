@@ -27,22 +27,37 @@ export default function Notificacoes() {
       .finally(() => setCarregando(false))
   }
 
-  useEffect(() => { if (usuario?.idUsuario) carregar() }, [usuario])
+  useEffect(() => { if (usuario?.idUsuario) carregar() }, [usuario?.idUsuario])
 
   async function marcarLida(id) {
-    const { data } = await api.put(`/api/notificacoes/${id}/ler`)
-    setNotificacoes(prev => prev.map(n => n.idNotificacao === id ? data : n))
+    try {
+      const { data } = await api.put(`/api/notificacoes/${id}/ler`)
+      setNotificacoes(prev => prev.map(n => n.idNotificacao === id ? data : n))
+    } catch (err) {
+      console.error('Falha ao marcar como lida:', err)
+    }
   }
 
   async function marcarTodasLidas() {
     const naoLidas = notificacoes.filter(n => !n.lido)
-    await Promise.all(naoLidas.map(n => api.put(`/api/notificacoes/${n.idNotificacao}/ler`)))
-    setNotificacoes(prev => prev.map(n => ({ ...n, lido: true })))
+    const resultados = await Promise.allSettled(
+      naoLidas.map(n => api.put(`/api/notificacoes/${n.idNotificacao}/ler`))
+    )
+    const idsOk = new Set(
+      resultados
+        .map((r, i) => r.status === 'fulfilled' ? naoLidas[i].idNotificacao : null)
+        .filter(Boolean)
+    )
+    setNotificacoes(prev => prev.map(n => idsOk.has(n.idNotificacao) ? { ...n, lido: true } : n))
   }
 
   async function excluir(id) {
-    await api.delete(`/api/notificacoes/${id}`)
-    setNotificacoes(prev => prev.filter(n => n.idNotificacao !== id))
+    try {
+      await api.delete(`/api/notificacoes/${id}`)
+      setNotificacoes(prev => prev.filter(n => n.idNotificacao !== id))
+    } catch (err) {
+      console.error('Falha ao excluir notificacao:', err)
+    }
   }
 
   const naoLidas = notificacoes.filter(n => !n.lido).length

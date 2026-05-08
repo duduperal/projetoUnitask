@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
@@ -44,10 +45,10 @@ export default function DashboardScreen({ navigation }) {
       setTarefas(resT.data)
       setGrupos(resG.data)
       setNotifCount(resN.data.filter(n => !n.lido).length)
-    } catch {} finally { setCarregando(false) }
+    } catch (e) { console.warn('Falha ao carregar dashboard', e) } finally { setCarregando(false) }
   }
 
-  useEffect(() => { carregar() }, [])
+  useFocusEffect(useCallback(() => { carregar() }, []))
 
   async function onRefresh() {
     setRefreshing(true)

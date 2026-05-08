@@ -58,7 +58,7 @@ export default function Tarefas() {
         setGruposAdmin(ids)
       })
       .catch(() => {})
-  }, [usuario])
+  }, [usuario?.idUsuario])
 
   function podeAlterarStatus(t) {
     if (!t.idsGrupos || t.idsGrupos.length === 0) return true
@@ -146,9 +146,15 @@ export default function Tarefas() {
   }
 
   async function excluir(id) {
-    await api.delete(`/api/tarefas/${id}`)
-    setTarefas(prev => prev.filter(t => t.idTarefa !== id))
-    setConfirmandoExcluir(null)
+    try {
+      await api.delete(`/api/tarefas/${id}`)
+      setTarefas(prev => prev.filter(t => t.idTarefa !== id))
+      setConfirmandoExcluir(null)
+    } catch (err) {
+      const msg = err.response?.data?.erro || 'Erro ao excluir tarefa. Tente novamente.'
+      alert(msg)
+      setConfirmandoExcluir(null)
+    }
   }
 
   function handlePanelUpdate(data) {
