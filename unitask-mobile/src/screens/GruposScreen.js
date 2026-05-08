@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TextInput,
   Modal, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
@@ -35,7 +36,7 @@ export default function GruposScreen({ navigation }) {
     } finally { setCarregando(false) }
   }
 
-  useEffect(() => { carregar() }, [])
+  useFocusEffect(useCallback(() => { carregar() }, []))
 
   async function onRefresh() {
     setRefreshing(true)

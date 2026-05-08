@@ -32,8 +32,10 @@ export default function Dashboard() {
     ]).then(([rTarefas, rNotif]) => {
       setTarefas(rTarefas.data)
       setNotificacoes(rNotif.data)
+    }).catch(err => {
+      console.error('Falha ao carregar dashboard:', err)
     }).finally(() => setCarregando(false))
-  }, [usuario])
+  }, [usuario?.idUsuario])
 
   const pendentes = tarefas.filter(t => t.status === 'pendente')
   const concluidas = tarefas.filter(t => t.status === 'concluida')

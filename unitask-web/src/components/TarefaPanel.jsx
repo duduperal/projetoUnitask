@@ -6,6 +6,16 @@ import styles from './TarefaPanel.module.css'
 
 const LABEL_PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
 
+function urlSegura(url) {
+  if (!url) return false
+  try {
+    const u = new URL(url, window.location.origin)
+    return u.protocol === 'http:' || u.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 function formatarData(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('pt-BR', {
@@ -86,6 +96,10 @@ export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete, podeA
     e.preventDefault()
     if (!novoAnexo.nomeArquivo.trim() || !novoAnexo.url.trim()) {
       setErro('Preencha nome e URL do anexo.')
+      return
+    }
+    if (!urlSegura(novoAnexo.url.trim())) {
+      setErro('URL invalida. Use apenas links http:// ou https://')
       return
     }
     setEnviando(true)
@@ -233,9 +247,15 @@ export default function TarefaPanel({ tarefa, onClose, onUpdate, onDelete, podeA
                     <div className={styles.anexoInfo}>
                       <span>📎</span>
                       <div>
-                        <a href={a.url} target="_blank" rel="noopener noreferrer" className={styles.anexoNome}>
-                          {a.nomeArquivo}
-                        </a>
+                        {urlSegura(a.url) ? (
+                          <a href={a.url} target="_blank" rel="noopener noreferrer" className={styles.anexoNome}>
+                            {a.nomeArquivo}
+                          </a>
+                        ) : (
+                          <span className={styles.anexoNome} title="URL invalida">
+                            {a.nomeArquivo}
+                          </span>
+                        )}
                         <span className={styles.anexoMeta}>por {formatarNome(a.nomeUsuario)} · {formatarData(a.criadoEm)}</span>
                       </div>
                     </div>

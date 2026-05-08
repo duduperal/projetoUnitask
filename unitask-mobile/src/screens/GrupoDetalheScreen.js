@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView,
   Modal, ActivityIndicator, Alert, FlatList,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useAuth } from '../context/AuthContext'
@@ -58,7 +59,7 @@ export default function GrupoDetalheScreen({ route, navigation }) {
     setCarregando(false)
   }
 
-  useEffect(() => { carregar() }, [])
+  useFocusEffect(useCallback(() => { carregar() }, []))
 
   async function compartilhar(idTarefa) {
     setSalvando(true)
@@ -77,8 +78,12 @@ export default function GrupoDetalheScreen({ route, navigation }) {
     Alert.alert('Remover do grupo?', 'A tarefa não será mais compartilhada.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: async () => {
-        await api.delete(`/api/grupos/${grupo.idGrupo}/tarefas/${idTarefa}`)
-        setTarefasGrupo(prev => prev.filter(t => t.idTarefa !== idTarefa))
+        try {
+          await api.delete(`/api/grupos/${grupo.idGrupo}/tarefas/${idTarefa}`)
+          setTarefasGrupo(prev => prev.filter(t => t.idTarefa !== idTarefa))
+        } catch (e) {
+          Alert.alert('Erro', e.response?.data?.erro || 'Não foi possível remover a tarefa do grupo.')
+        }
       }},
     ])
   }

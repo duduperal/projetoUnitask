@@ -200,7 +200,7 @@ public class GrupoController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Apenas o admin do grupo pode deletá-lo");
         }
-        if (grupoMembroRepository.existsByGrupoIdGrupoAndPapel(id, GrupoMembro.Papel.membro)) {
+        if (grupoMembroRepository.existsByGrupoIdGrupoAndUsuarioIdUsuarioNot(id, usuario.getIdUsuario())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "O grupo ainda possui membros. Remova todos os membros antes de excluir o grupo.");
         }

@@ -84,7 +84,15 @@ export default function LoginScreen({ navigation }) {
               </PressableScale>
             </View>
 
-            <PressableScale haptic="light" scale={0.96} style={styles.linkEsqueceu}>
+            <PressableScale
+              haptic="light"
+              scale={0.96}
+              style={styles.linkEsqueceu}
+              onPress={() => Alert.alert(
+                'Recuperação de senha',
+                'A recuperação automática ainda não está disponível. Entre em contato com o administrador do sistema.'
+              )}
+            >
               <Text style={styles.linkEsqueceuText}>Esqueceu a senha?</Text>
             </PressableScale>
 
