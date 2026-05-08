@@ -444,6 +444,61 @@
 
 .btnExcluirConfirm:hover { background: #b91c1c; }
 
+/* Modal de Aviso */
+.modalAviso {
+  background: var(--white);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 28px 22px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border);
+  text-align: center;
+  animation: avisoIn 0.18s ease-out;
+}
+
+@keyframes avisoIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.avisoIcone {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 14px;
+}
+
+.avisoAmarelo {
+  background: #fef3c7;
+}
+
+.avisoVermelho {
+  background: var(--danger-light);
+}
+
+.modalAviso h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.modalAviso p {
+  font-size: 13.5px;
+  color: var(--gray);
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.modalAviso .confirmFooter {
+  justify-content: center;
+}
+
 /* Responsivo */
 @media (max-width: 768px) {
   .header {

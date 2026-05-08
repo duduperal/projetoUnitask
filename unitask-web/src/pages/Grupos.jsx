@@ -18,6 +18,7 @@ export default function Grupos() {
   const [erro, setErro] = useState('')
   const [copiado, setCopiado] = useState(null)
   const [confirmandoExcluir, setConfirmandoExcluir] = useState(null)
+  const [aviso, setAviso] = useState(null)
 
   function carregar() {
     api.get(`/api/grupos/usuario/${usuario.idUsuario}`)
@@ -76,10 +77,25 @@ export default function Grupos() {
     } catch (e) {
       const status = e.response?.status
       const msg = e.response?.data?.erro
+      setConfirmandoExcluir(null)
       if (status === 403) {
-        alert('Apenas o admin do grupo pode excluí-lo.')
+        setAviso({
+          titulo: 'Permissão negada',
+          mensagem: 'Apenas o admin do grupo pode excluí-lo.',
+          tipo: 'erro',
+        })
+      } else if (status === 409 || /membro|ativo/i.test(msg || '')) {
+        setAviso({
+          titulo: 'Não é possível excluir este grupo',
+          mensagem: msg || 'Existem membros ativos neste grupo. Remova todos os membros antes de excluí-lo.',
+          tipo: 'aviso',
+        })
       } else {
-        alert(msg || 'Erro ao excluir o grupo. Tente novamente.')
+        setAviso({
+          titulo: 'Erro ao excluir',
+          mensagem: msg || 'Não foi possível excluir o grupo. Tente novamente.',
+          tipo: 'erro',
+        })
       }
     }
   }
@@ -236,6 +252,22 @@ export default function Grupos() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Aviso */}
+      {aviso && (
+        <div className={styles.overlay} onClick={() => setAviso(null)}>
+          <div className={styles.modalAviso} onClick={e => e.stopPropagation()}>
+            <div className={`${styles.avisoIcone} ${aviso.tipo === 'aviso' ? styles.avisoAmarelo : styles.avisoVermelho}`}>
+              {aviso.tipo === 'aviso' ? '⚠️' : '🚫'}
+            </div>
+            <h3>{aviso.titulo}</h3>
+            <p>{aviso.mensagem}</p>
+            <div className={styles.confirmFooter}>
+              <button className={styles.btnSalvar} onClick={() => setAviso(null)}>Entendi</button>
+            </div>
           </div>
         </div>
       )}
