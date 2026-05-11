@@ -11,6 +11,7 @@ unitask-web/.env.local
 unitask/target/
 unitask/.mvn/wrapper/maven-wrapper.jar
 unitask/*.class
+unitask/src/main/resources/application-local.properties
 
 # IDEs
 .idea/

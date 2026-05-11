@@ -28,8 +28,8 @@ public class Usuario {
 
     /**
      * Foto de perfil em base64 (data URL completa, ex: "data:image/jpeg;base64,...").
-     * MEDIUMTEXT suporta ate ~16MB; o frontend comprime para ~200KB antes de enviar.
+     * O frontend comprime para ~200KB antes de enviar.
      */
-    @Column(name = "foto_perfil", columnDefinition = "MEDIUMTEXT")
+    @Column(name = "foto_perfil", columnDefinition = "TEXT")
     private String fotoPerfil;
 }
