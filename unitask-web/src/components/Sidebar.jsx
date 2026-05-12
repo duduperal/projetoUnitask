@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { formatarNome } from '../utils/formatNome'
 import Avatar from './Avatar'
+import logoIcon from '../assets/logo-icon.png'
 import styles from './Sidebar.module.css'
 
 const navItems = [
@@ -26,7 +27,7 @@ export default function Sidebar({ open, onClose }) {
   return (
     <aside className={`${styles.sidebar} ${open ? styles.open : ''}`}>
       <div className={styles.logo}>
-        <div className={styles.logoIcon}>U</div>
+        <img src={logoIcon} alt="" className={styles.logoIcon} />
         <div className={styles.logoTexts}>
           <h1>UniTask</h1>
           <span>Gestão Acadêmica</span>

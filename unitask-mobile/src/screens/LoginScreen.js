@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  View, Text, TextInput,
+  View, Text, TextInput, Image,
   StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -46,10 +46,11 @@ export default function LoginScreen({ navigation }) {
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
 
           <View style={styles.logoBox}>
-            <View style={styles.logoIcon}>
-              <Ionicons name="checkbox" size={36} color="#fff" />
-            </View>
-            <Text style={styles.logoText}>UniTask</Text>
+            <Image
+              source={require('../../assets/logo-unitask.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.logoSub}>Suas tarefas acadêmicas, organizadas</Text>
           </View>
 
@@ -124,15 +125,7 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, paddingHorizontal: spacing.xxl, justifyContent: 'center', paddingVertical: spacing.huge },
 
   logoBox: { alignItems: 'center', marginBottom: spacing.huge },
-  logoIcon: {
-    width: 80, height: 80,
-    backgroundColor: colors.primary,
-    borderRadius: radius.xl,
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: spacing.lg,
-    shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 20, elevation: 10,
-  },
-  logoText: { ...typography.display, color: colors.text, marginBottom: 6 },
+  logoImage: { width: 180, height: 180, marginBottom: spacing.md },
   logoSub: { ...typography.body, color: colors.textMuted, textAlign: 'center' },
 
   form: {},

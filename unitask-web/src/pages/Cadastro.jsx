@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../services/api'
+import logoUnitask from '../assets/logo-unitask.png'
 import styles from './Cadastro.module.css'
 
 export default function Cadastro() {
@@ -39,10 +40,7 @@ export default function Cadastro() {
   return (
     <div className={styles.container}>
       <div className={styles.leftPanel}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}>U</div>
-          <span className={styles.logoNome}>UniTask</span>
-        </div>
+        <img src={logoUnitask} alt="UniTask — Gestão Acadêmica" className={styles.logo} />
         <p className={styles.slogan}>Comece a organizar suas tarefas hoje.</p>
         <p className={styles.sloganSub}>Crie sua conta gratuitamente e gerencie suas atividades acadêmicas com facilidade.</p>
         <div className={styles.steps}>

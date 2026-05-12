@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import logoUnitask from '../assets/logo-unitask.png'
 import styles from './Login.module.css'
 
 export default function Login() {
@@ -35,10 +36,7 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <div className={styles.leftPanel}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}>U</div>
-          <span className={styles.logoNome}>UniTask</span>
-        </div>
+        <img src={logoUnitask} alt="UniTask — Gestão Acadêmica" className={styles.logo} />
         <p className={styles.slogan}>Bem-vindo de volta!</p>
         <p className={styles.sloganSub}>Acesse sua conta para gerenciar suas tarefas e grupos acadêmicos.</p>
         <div className={styles.features}>
