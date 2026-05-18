@@ -97,8 +97,11 @@ export default function TarefasScreen({ navigation }) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
       }
       setModalVisible(false)
-    } catch {
-      Alert.alert('Erro', 'Não foi possível salvar a tarefa.')
+    } catch (e) {
+      const status = e.response?.status
+      const data = e.response?.data
+      const msg = data?.erro || data?.message || e.message || 'desconhecido'
+      Alert.alert('Erro ao salvar', `Status: ${status ?? 'sem resposta'}\n${msg}`)
     } finally { setSalvando(false) }
   }
 

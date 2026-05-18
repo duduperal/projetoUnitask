@@ -116,8 +116,12 @@ export default function Tarefas() {
         setTarefas(prev => [data, ...prev])
       }
       fecharModal()
-    } catch {
-      setErro('Erro ao salvar tarefa. Tente novamente.')
+    } catch (e) {
+      const status = e.response?.status
+      const data = e.response?.data
+      const msg = data?.erro || data?.message || e.message || 'desconhecido'
+      setErro(`Erro ao salvar (status: ${status ?? 'sem resposta'}) — ${msg}`)
+      console.error('Erro ao salvar tarefa:', e)
     } finally {
       setSalvando(false)
     }
