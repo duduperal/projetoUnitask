@@ -2,7 +2,7 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const api = axios.create({
-  baseURL: 'https://unitask-production-5087.up.railway.app',
+  baseURL: 'https://unitask-api.onrender.com',
 })
 
 api.interceptors.request.use(async (config) => {
