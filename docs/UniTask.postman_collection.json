@@ -35,15 +35,15 @@
           { "key": "Content-Type", "value": "application/json" }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/auth/register",
+          "raw": "{{baseUrl}}/api/usuarios",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "register"]
+          "path": ["api", "usuarios"]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"nome\": \"Demo Apresentacao\",\n  \"email\": \"demo@unitask.com\",\n  \"senhaHash\": \"demo123\"\n}"
+          "raw": "{\n  \"nome\": \"Demo Apresentacao\",\n  \"email\": \"demo@unitask.com\",\n  \"senha\": \"demo123\"\n}"
         },
-        "description": "Cria um usuario novo. Use apenas se nao tiver conta. Email precisa ser unico."
+        "description": "Cria um usuario novo via POST /api/usuarios. Use apenas se nao tiver conta. Email precisa ser unico (se ja existir, vai retornar 'Email ja cadastrado')."
       }
     },
     {
@@ -60,9 +60,9 @@
               "  pm.collectionVariables.set('token', json.token);",
               "  console.log('Token salvo:', json.token.substring(0, 30) + '...');",
               "}",
-              "if (json.usuario && json.usuario.idUsuario) {",
-              "  pm.collectionVariables.set('idUsuario', json.usuario.idUsuario);",
-              "  console.log('idUsuario salvo:', json.usuario.idUsuario);",
+              "if (json.idUsuario) {",
+              "  pm.collectionVariables.set('idUsuario', json.idUsuario);",
+              "  console.log('idUsuario salvo:', json.idUsuario);",
               "}",
               "pm.test('Login bem-sucedido', function () {",
               "  pm.response.to.have.status(200);",
@@ -83,9 +83,9 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"email\": \"demo@unitask.com\",\n  \"senhaHash\": \"demo123\"\n}"
+          "raw": "{\n  \"email\": \"demo@unitask.com\",\n  \"senha\": \"demo123\"\n}"
         },
-        "description": "Faz login. O script de teste salva o token JWT e o idUsuario em variaveis da collection automaticamente, pra serem usadas nas proximas requests."
+        "description": "Faz login. O script de teste salva o token JWT e o idUsuario em variaveis da collection automaticamente, pra serem usadas nas proximas requests. Backend espera 'senha' (nao 'senhaHash')."
       }
     },
     {
