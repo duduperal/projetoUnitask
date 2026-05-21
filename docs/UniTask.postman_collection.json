@@ -1,0 +1,160 @@
+{
+  "info": {
+    "name": "UniTask - API Demo",
+    "description": "Collection de demonstração da API REST do UniTask. Rode as requests em ordem: 1) Cadastro (opcional) → 2) Login (salva token automaticamente) → 3) Listar tarefas → 4) Criar tarefa → 5) Concluir tarefa.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://unitask-api.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idUsuario",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idTarefa",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Cadastrar usuario (opcional)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Demo Apresentacao\",\n  \"email\": \"demo@unitask.com\",\n  \"senhaHash\": \"demo123\"\n}"
+        },
+        "description": "Cria um usuario novo. Use apenas se nao tiver conta. Email precisa ser unico."
+      }
+    },
+    {
+      "name": "2. Login (salva token automaticamente)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Salva token e idUsuario nas variaveis da collection",
+              "const json = pm.response.json();",
+              "if (json.token) {",
+              "  pm.collectionVariables.set('token', json.token);",
+              "  console.log('Token salvo:', json.token.substring(0, 30) + '...');",
+              "}",
+              "if (json.usuario && json.usuario.idUsuario) {",
+              "  pm.collectionVariables.set('idUsuario', json.usuario.idUsuario);",
+              "  console.log('idUsuario salvo:', json.usuario.idUsuario);",
+              "}",
+              "pm.test('Login bem-sucedido', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"demo@unitask.com\",\n  \"senhaHash\": \"demo123\"\n}"
+        },
+        "description": "Faz login. O script de teste salva o token JWT e o idUsuario em variaveis da collection automaticamente, pra serem usadas nas proximas requests."
+      }
+    },
+    {
+      "name": "3. Listar minhas tarefas",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/tarefas/usuario/{{idUsuario}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tarefas", "usuario", "{{idUsuario}}"]
+        },
+        "description": "Lista todas as tarefas do usuario autenticado. Usa o token e idUsuario salvos no login."
+      }
+    },
+    {
+      "name": "4. Criar tarefa",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.idTarefa) {",
+              "  pm.collectionVariables.set('idTarefa', json.idTarefa);",
+              "  console.log('idTarefa salvo:', json.idTarefa);",
+              "}",
+              "pm.test('Tarefa criada com sucesso', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/tarefas",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tarefas"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idUsuario\": {{idUsuario}},\n  \"titulo\": \"Estudar para a prova de PS2\",\n  \"descricao\": \"Revisar arquitetura em camadas e JWT\",\n  \"prioridade\": \"alta\",\n  \"prazo\": \"2026-06-15T18:00:00\"\n}"
+        },
+        "description": "Cria uma nova tarefa. Demonstra: POST com JWT, persistencia no PostgreSQL/Neon, retorno do DTO de resposta. Salva o idTarefa pra usar no proximo step."
+      }
+    },
+    {
+      "name": "5. Concluir tarefa",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/tarefas/{{idTarefa}}/concluir",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tarefas", "{{idTarefa}}", "concluir"]
+        },
+        "description": "Marca a tarefa como concluida. Demonstra: endpoint customizado de dominio (alem do CRUD), regra de negocio no service (status='concluida', concluidoEm=now())."
+      }
+    }
+  ]
+}
