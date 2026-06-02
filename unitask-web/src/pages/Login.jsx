@@ -26,7 +26,7 @@ export default function Login() {
         fotoPerfil: response.data.fotoPerfil || null,
       })
       navigate('/')
-    } catch (error) {
+    } catch {
       setErro('E-mail ou senha inválidos.')
     } finally {
       setCarregando(false)
