@@ -23,7 +23,7 @@ unitask/src/main/resources/application-local.properties
 # OS
 .DS_Store
 Thumbs.db
-.claude/worktrees/
+.claude/
 
 # Claude local notes (não versionar)
 CLAUDE.local.md
